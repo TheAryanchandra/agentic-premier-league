@@ -227,7 +227,7 @@ gsutil web set -m index.html gs://$PROJECT_ID-stadium-dashboard/
 
 # Get URL
 echo "Frontend deployed at:"
-echo "https://storage.googleapis.com/$PROJECT_ID-stadium-dashboard/index.html"
+echo "https://storage.googleapis.com/aryan-487709-stadium-dashboard/index.html?v=1"
 ```
 
 ### 4.6 Update Frontend API URL
@@ -256,7 +256,7 @@ curl https://stadium-api-xxxxx.run.app/health
 ### 5.2 Verify Frontend
 Open in browser:
 ```
-https://storage.googleapis.com/$PROJECT_ID-stadium-dashboard/index.html
+https://storage.googleapis.com/aryan-487709-stadium-dashboard/index.html?v=1
 ```
 
 ### 5.3 Test Full Flow
@@ -275,7 +275,7 @@ https://storage.googleapis.com/$PROJECT_ID-stadium-dashboard/index.html
 |-----------|-----|
 | Backend API | `https://stadium-api-xxxxx.run.app` |
 | API Docs | `https://stadium-api-xxxxx.run.app/docs` |
-| Frontend | `https://storage.googleapis.com/$PROJECT_ID-stadium-dashboard/index.html` |
+| Frontend | `https://storage.googleapis.com/aryan-487709-stadium-dashboard/index.html?v=1` |
 | Firebase Console | https://console.firebase.google.com |
 | GCP Console | https://console.cloud.google.com |
 
