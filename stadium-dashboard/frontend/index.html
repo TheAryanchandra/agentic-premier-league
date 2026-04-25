@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stadium Experience Dashboard</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 32px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .dashboard-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-section h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .zone-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .zone-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .zone-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .zone-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .zone-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .zone-percentage {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .status-safe { background: #10b981; }
+        .status-crowded { background: #f59e0b; }
+        .status-danger { background: #ef4444; }
+
+        .zone-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .status-safe { background: #10b981; }
+        .status-crowded { background: #f59e0b; }
+        .status-danger { background: #ef4444; }
+
+        .admin-panel {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .admin-panel h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input, select {
+            background: white;
+            color: #333;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .alerts-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .alert-danger { border-left-color: #ef4444; }
+        .alert-warning { border-left-color: #f59e0b; }
+        .alert-info { border-left-color: #3b82f6; }
+
+        .alert-message {
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .alert-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-form {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const API_URL = 'https://stadium-api-551694156067.us-central1.run.app';
+
+        function App() {
+            const [zones, setZones] = useState([]);
+            const [density, setDensity] = useState({});
+            const [alerts, setAlerts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [selectedZone, setSelectedZone] = useState('');
+            const [crowdUpdate, setCrowdUpdate] = useState('');
+
+            // Fetch data on component mount and set up polling
+            useEffect(() => {
+                fetchData();
+                const interval = setInterval(fetchData, 5000); // Refresh every 5 seconds
+                return () => clearInterval(interval);
+            }, []);
+
+            const fetchData = async () => {
+                try {
+                    const [zonesRes, densityRes, alertsRes] = await Promise.all([
+                        fetch(`${API_URL}/zones`),
+                        fetch(`${API_URL}/density`),
+                        fetch(`${API_URL}/alerts`)
+                    ]);
+
+                    if (zonesRes.ok) setZones(await zonesRes.json());
+                    if (densityRes.ok) setDensity(await densityRes.json());
+                    if (alertsRes.ok) setAlerts(await alertsRes.json());
+
+                    setLoading(false);
+                } catch (err) {
+                    setError('Failed to fetch data. Make sure the API is running.');
+                    setLoading(false);
+                }
+            };
+
+            const handleDensityUpdate = async () => {
+                if (!selectedZone || !crowdUpdate) {
+                    alert('Please select a zone and enter crowd count');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/density/update`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            zone_id: selectedZone,
+                            current_people: parseInt(crowdUpdate)
+                        })
+                    });
+
+                    if (res.ok) {
+                        setCrowdUpdate('');
+                        fetchData();
+                    }
+                } catch (err) {
+                    alert('Failed to update density');
+                }
+            };
+
+            const getStatusClass = (percentage) => {
+                if (percentage < 70) return 'status-safe';
+                if (percentage < 85) return 'status-crowded';
+                return 'status-danger';
+            };
+
+            const getStatusText = (percentage) => {
+                if (percentage < 70) return 'Safe';
+                if (percentage < 85) return 'Crowded';
+                return 'Danger';
+            };
+
+            if (loading) return <div className="loading">Loading stadium data...</div>;
+
+            return (
+                <div className="container">
+                    <header>
+                        <h1>⚽ Stadium Experience Dashboard</h1>
+                        <p>Real-time crowd monitoring • IPL Match: DC vs Punjab Super Kings</p>
+                    </header>
+
+                    {error && <div className="error">{error}</div>}
+
+                    <div className="dashboard">
+                        {/* Staff Admin Panel */}
+                        <div className="dashboard-section">
+                            <h2>👨‍💼 Staff Admin Panel</h2>
+                            <div className="admin-panel">
+                                <h3>Update Crowd Density</h3>
+                                <div className="admin-form">
+                                    <select
+                                        value={selectedZone}
+                                        onChange={(e) => setSelectedZone(e.target.value)}
+                                    >
+                                        <option value="">Select Zone</option>
+                                        {zones.map((zone) => (
+                                            <option key={zone.id} value={zone.id}>
+                                                {zone.name} (Cap: {zone.capacity})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="number"
+                                        value={crowdUpdate}
+                                        onChange={(e) => setCrowdUpdate(e.target.value)}
+                                        placeholder="Current crowd count"
+                                        min="0"
+                                    />
+                                    <button onClick={handleDensityUpdate}>Update</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Live Crowd Density */}
+                        <div className="dashboard-section">
+                            <h2>📊 Live Crowd Density</h2>
+                            <div className="stats-grid">
+                                {zones.map((zone) => {
+                                    const d = density[zone.id];
+                                    if (!d) return null;
+                                    return (
+                                        <div key={zone.id} className="stat-card">
+                                            <div className="stat-label">{zone.name}</div>
+                                            <div className="stat-value">{d.percentage.toFixed(0)}%</div>
+                                            <div className="stat-label">{d.current}/{d.capacity}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="zones-grid">
+                                {zones.map((zone) => {
+                                    const d = density[zone.id];
+                                    if (!d) return null;
+                                    const statusClass = getStatusClass(d.percentage);
+
+                                    return (
+                                        <div key={zone.id} className="zone-card">
+                                            <div className="zone-name">{zone.name}</div>
+                                            <div className="zone-stats">
+                                                <div className="zone-count">{d.current}</div>
+                                                <div className="zone-percentage">{d.capacity} capacity</div>
+                                            </div>
+                                            <div className="progress-bar">
+                                                <div
+                                                    className={`progress-fill ${statusClass}`}
+                                                    style={{ width: `${Math.min(d.percentage, 100)}%` }}
+                                                />
+                                            </div>
+                                            <span className={`zone-status ${statusClass}`}>
+                                                {getStatusText(d.percentage)} ({d.percentage.toFixed(1)}%)
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Alerts */}
+                        <div className="dashboard-section">
+                            <h2>🚨 Recent Alerts</h2>
+                            <div className="alerts-list">
+                                {alerts.length === 0 ? (
+                                    <div style={{ color: '#999', padding: '20px', textAlign: 'center' }}>
+                                        No alerts
+                                    </div>
+                                ) : (
+                                    alerts.map((alert, idx) => (
+                                        <div key={idx} className={`alert-item alert-${alert.severity}`}>
+                                            <div className="alert-message">{alert.message}</div>
+                                            <div className="alert-time">
+                                                {new Date(alert.timestamp * 1000).toLocaleTimeString()}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
