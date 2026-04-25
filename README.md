@@ -190,21 +190,7 @@ https://stadium-api-551694156067.us-central1.run.app/docs
 
 ---
 
-## **❓ ANSWER TRICKY QUESTIONS**
 
-**Q: "How do you know the actual crowd count?"**
-> A: "For this demo, staff manually updates via the admin panel. For real stadiums, we'd integrate with turnstile sensors, WiFi analytics, or thermal cameras."
-
-**Q: "What if your API goes down?"**
-> A: "Cloud Run has 99.95% SLA. Plus, the frontend caches data, so it still works for 30 seconds offline."
-
-**Q: "Can you use a better ML model?"**
-> A: "Absolutely. Right now we're using Linear Trend Projection to keep it lightweight. Once we have real match data, we can swap in LSTM or XGBoost with zero code changes."
-
-**Q: "How do you handle 50,000 concurrent users?"**
-> A: "Cloud Run auto-scales. If 1000 requests hit per second, it spins up 100+ container instances automatically."
-
----
 
 ## **🎯 LIVE LINKS (SHARE THESE)**
 
