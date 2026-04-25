@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stadium Experience Dashboard</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+      (function () {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has("v")) {
+          url.searchParams.set("v", Date.now()); // Always fresh request
+          window.location.replace(url.toString());
+        }
+      })();
+    </script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -243,8 +255,15 @@
         }
 
         @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 0; }
+            header { padding: 15px; margin-bottom: 15px; }
+            .dashboard-section { padding: 15px; }
+            .dashboard { gap: 15px; }
+            
             .zones-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
 
             .admin-form {
@@ -253,6 +272,10 @@
 
             header h1 {
                 font-size: 24px;
+            }
+
+            .alerts-list {
+                max-height: 300px;
             }
         }
 
@@ -268,6 +291,72 @@
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
+        }
+
+        /* SOS Premium Styles */
+        .sos-container {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            border: none !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sos-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .sos-input {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+        }
+
+        .sos-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sos-btn {
+            background: white !important;
+            color: #ff4b2b !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 800 !important;
+            letter-spacing: 1px;
+        }
+
+        .sos-btn:hover {
+            transform: scale(1.05);
+            background: #fdfdfd !important;
+        }
+
+        .alert-danger-active {
+            animation: pulse-red 2s infinite;
+            border-left: 10px solid #ef4444 !important;
+            background: #fff5f5 !important;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .emergency-badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 8px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -287,6 +376,8 @@
             const [error, setError] = useState(null);
             const [selectedZone, setSelectedZone] = useState('');
             const [crowdUpdate, setCrowdUpdate] = useState('');
+            const [sosMessage, setSosMessage] = useState('');
+            const [sosSuccess, setSosSuccess] = useState(false);
 
             // Fetch data on component mount and set up polling
             useEffect(() => {
@@ -339,6 +430,33 @@
                 }
             };
 
+            const handleSOS = async () => {
+                if (!sosMessage) {
+                    alert('Please enter an emergency message');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/alerts/create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            msg: sosMessage,
+                            severity: 'danger'
+                        })
+                    });
+
+                    if (res.ok) {
+                        setSosMessage('');
+                        setSosSuccess(true);
+                        setTimeout(() => setSosSuccess(false), 5000);
+                        fetchData();
+                    }
+                } catch (err) {
+                    alert('Failed to send SOS');
+                }
+            };
+
             const getStatusClass = (percentage) => {
                 if (percentage < 70) return 'status-safe';
                 if (percentage < 85) return 'status-crowded';
@@ -363,6 +481,36 @@
                     {error && <div className="error">{error}</div>}
 
                     <div className="dashboard">
+                        {/* SOS Emergency Panel */}
+                        <div className="dashboard-section sos-container">
+                            <h2 style={{ color: 'white', borderBottom: '2px solid rgba(255,255,255,0.3)' }}>🚨 IPL SOS Emergency Report</h2>
+                            <p style={{ marginBottom: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>
+                                RAPID RESPONSE: Direct line to stadium security & medical teams.
+                            </p>
+                            <div className="admin-panel" style={{ background: 'transparent', padding: 0 }}>
+                                <div className="admin-form">
+                                    <input
+                                        className="sos-input"
+                                        style={{ flex: 2 }}
+                                        type="text"
+                                        value={sosMessage}
+                                        onChange={(e) => setSosMessage(e.target.value)}
+                                        placeholder="Describe the emergency (e.g. Heart attack at Gate 4)"
+                                    />
+                                    <button 
+                                        className="sos-btn"
+                                        onClick={handleSOS}
+                                    >
+                                        ACTIVATE SOS
+                                    </button>
+                                </div>
+                                {sosSuccess && (
+                                    <div style={{ marginTop: '15px', background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                                        ⚡ EMERGENCY SIGNAL BROADCASTED. HELP IS ON THE WAY.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                         {/* Staff Admin Panel */}
                         <div className="dashboard-section">
                             <h2>👨‍💼 Staff Admin Panel</h2>
@@ -447,8 +595,12 @@
                                     </div>
                                 ) : (
                                     alerts.map((alert, idx) => (
-                                        <div key={idx} className={`alert-item alert-${alert.severity}`}>
-                                            <div className="alert-message">{alert.message}</div>
+                                        <div key={idx} className={`alert-item alert-${alert.severity} ${alert.severity === 'danger' ? 'alert-danger-active' : ''}`}>
+                                            <div className="alert-message">
+                                                {alert.severity === 'danger' && <span className="emergency-badge">SOS</span>}
+                                                {alert.message}
+                                                {alert.phone && <span style={{ marginLeft: '10px', color: '#666', fontSize: '11px' }}>📞 Contact: {alert.phone}</span>}
+                                            </div>
                                             <div className="alert-time">
                                                 {new Date(alert.timestamp * 1000).toLocaleTimeString()}
                                             </div>

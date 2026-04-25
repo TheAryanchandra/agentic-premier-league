@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AliasChoices
 from datetime import datetime, timedelta
 import os
 from typing import List, Dict
@@ -50,8 +50,9 @@ class DensityUpdate(BaseModel):
 
 class Alert(BaseModel):
     id: str = None
-    message: str
+    message: str = Field(..., validation_alias=AliasChoices("message", "msg"))
     zone_id: str = None
+    phone: str = None
     severity: str = "info"  # info, warning, danger
     timestamp: float = None
 
@@ -73,6 +74,8 @@ MOCK_DENSITY = {
     "F1": {"current": 150, "trend": [50, 100, 120, 150], "last_update": datetime.now().timestamp()},
     "R1": {"current": 45, "trend": [30, 35, 40, 45], "last_update": datetime.now().timestamp()},
 }
+
+MOCK_ALERTS = []
 
 
 
@@ -98,8 +101,8 @@ def get_zones():
             zones = db.collection("zones").stream()
             return [z.to_dict() for z in zones]
         except:
-            return [z.dict() for z in MOCK_ZONES]
-    return [z.dict() for z in MOCK_ZONES]
+            return [z.model_dump() for z in MOCK_ZONES]
+    return [z.model_dump() for z in MOCK_ZONES]
 
 @app.get("/density")
 def get_density():
@@ -157,7 +160,7 @@ def update_density(update: DensityUpdate):
     raise HTTPException(status_code=404, detail="Zone not found")
 
 # Get all alerts
-
+@app.get("/alerts")
 def get_alerts():
     if db:
         try:
@@ -165,7 +168,7 @@ def get_alerts():
             return [a.to_dict() for a in alerts]
         except:
             pass
-    return []
+    return MOCK_ALERTS[::-1]  # Return local alerts in reverse chronological order
 
 # Create alert (for staff)
 @app.post("/alerts/create")
@@ -174,12 +177,14 @@ def create_alert(alert: Alert):
     
     if db:
         try:
-            db.collection("alerts").add(alert.dict())
-            return {"status": "success", "alert": alert.dict()}
+            db.collection("alerts").add(alert.model_dump())
+            return {"status": "success", "alert": alert.model_dump()}
         except:
             pass
     
-    return {"status": "success", "alert": alert.dict()}
+    # Store in local memory for mock mode
+    MOCK_ALERTS.append(alert.model_dump())
+    return {"status": "success", "alert": alert.model_dump()}
 
 # Get queue prediction for a zone
 @app.get("/queue/prediction/{zone_id}")
@@ -212,4 +217,4 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
