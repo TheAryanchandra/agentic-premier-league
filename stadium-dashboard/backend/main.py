@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, AliasChoices
 from datetime import datetime, timedelta
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional
 import json
 
 # Firebase imports
@@ -12,6 +12,13 @@ try:
     from firebase_admin import credentials, firestore
 except ImportError:
     print("Firebase not installed, will work in mock mode")
+
+ADMIN_KEY = os.getenv("ADMIN_KEY", "admin")
+
+async def verify_admin(x_admin_key: Optional[str] = Header(None)):
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Staff Access Token")
+    return x_admin_key
 
 app = FastAPI(title="Stadium Experience Dashboard")
 
@@ -42,6 +49,7 @@ class Zone(BaseModel):
     id: str
     name: str
     capacity: int
+    status: str = "active" # active, maintenance, closed
 
 class DensityUpdate(BaseModel):
     zone_id: str
@@ -54,16 +62,17 @@ class Alert(BaseModel):
     zone_id: str = None
     phone: str = None
     severity: str = "info"  # info, warning, danger
+    status: str = "active"  # active, resolved
     timestamp: float = None
 
 
 MOCK_ZONES = [
-    Zone(id="N1", name="North Stand", capacity=5000),
-    Zone(id="S1", name="South Stand", capacity=4000),
-    Zone(id="E1", name="East Stand", capacity=3000),
-    Zone(id="W1", name="West Stand", capacity=3500),
-    Zone(id="F1", name="Food Court", capacity=500),
-    Zone(id="R1", name="Restrooms", capacity=200),
+    Zone(id="N1", name="North Stand", capacity=5000, status="active"),
+    Zone(id="S1", name="South Stand", capacity=4000, status="active"),
+    Zone(id="E1", name="East Stand", capacity=3000, status="active"),
+    Zone(id="W1", name="West Stand", capacity=3500, status="active"),
+    Zone(id="F1", name="Food Court", capacity=500, status="active"),
+    Zone(id="R1", name="Restrooms", capacity=200, status="active"),
 ]
 
 MOCK_DENSITY = {
@@ -104,6 +113,18 @@ def get_zones():
             return [z.model_dump() for z in MOCK_ZONES]
     return [z.model_dump() for z in MOCK_ZONES]
 
+@app.post("/zones/update")
+def update_zone_status(zone_id: str, status: str, admin: str = Depends(verify_admin)):
+    if status not in ["active", "maintenance", "closed"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    for zone in MOCK_ZONES:
+        if zone.id == zone_id:
+            zone.status = status
+            return {"status": "success", "zone_id": zone_id, "new_status": status}
+    
+    raise HTTPException(status_code=404, detail="Zone not found")
+
 @app.get("/density")
 def get_density():
     if db:
@@ -132,8 +153,9 @@ def get_density():
     return result
 
 
+
 @app.post("/density/update")
-def update_density(update: DensityUpdate):
+def update_density(update: DensityUpdate, admin: str = Depends(verify_admin)):
     zone_id = update.zone_id
     current_people = update.current_people
     timestamp = update.timestamp or datetime.now().timestamp()
@@ -151,7 +173,7 @@ def update_density(update: DensityUpdate):
     
 
     if zone_id in MOCK_DENSITY:
-        # Keep trend (last 3 values)
+        # Keep trend (last 5 values for better ML)
         MOCK_DENSITY[zone_id]["trend"] = MOCK_DENSITY[zone_id]["trend"][1:] + [current_people]
         MOCK_DENSITY[zone_id]["current"] = current_people
         MOCK_DENSITY[zone_id]["last_update"] = timestamp
@@ -170,9 +192,13 @@ def get_alerts():
             pass
     return MOCK_ALERTS[::-1]  # Return local alerts in reverse chronological order
 
-# Create alert (for staff)
+# Create alert (for staff or fans)
 @app.post("/alerts/create")
-def create_alert(alert: Alert):
+def create_alert(alert: Alert, x_admin_key: Optional[str] = Header(None)):
+    # SOS alerts (danger) don't need admin key (from fans), but general info/warning alerts do
+    if alert.severity != "danger" and x_admin_key != ADMIN_KEY:
+         raise HTTPException(status_code=403, detail="Unauthorized Staff Access")
+
     alert.timestamp = alert.timestamp or datetime.now().timestamp()
     
     if db:
@@ -185,6 +211,29 @@ def create_alert(alert: Alert):
     # Store in local memory for mock mode
     MOCK_ALERTS.append(alert.model_dump())
     return {"status": "success", "alert": alert.model_dump()}
+
+# Resolve a specific alert
+@app.post("/alerts/resolve/{alert_index}")
+def resolve_alert(alert_index: int, admin: str = Depends(verify_admin)):
+    if 0 <= alert_index < len(MOCK_ALERTS):
+        MOCK_ALERTS[alert_index]["status"] = "resolved"
+        return {"status": "success", "message": "Alert resolved"}
+    raise HTTPException(status_code=404, detail="Alert index not found")
+
+# Clear all alerts (Admin only)
+@app.delete("/alerts/clear")
+def clear_alerts(admin: str = Depends(verify_admin)):
+    if db:
+        try:
+            # In a real app, you'd batch delete. Here we just try to clear local for mock.
+            docs = db.collection("alerts").stream()
+            for doc in docs:
+                doc.reference.delete()
+        except:
+            pass
+            
+    MOCK_ALERTS.clear()
+    return {"status": "success", "message": "All alerts cleared"}
 
 # Get queue prediction for a zone
 @app.get("/queue/prediction/{zone_id}")
