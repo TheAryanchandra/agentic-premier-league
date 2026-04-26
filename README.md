@@ -56,7 +56,7 @@ An automated reasoning engine evaluates the forecasted density against safety th
 ## 🛠️ Technical Stack
 - **Backend**: FastAPI (Python) with header-based Staff Authentication.
 - **Frontend**: React (Single Page Application) with Glassmorphic UI/UX.
-- **Data Persistence**: Firestore (Optional) / In-Memory Mock Mode (Demo).
+- **Data Persistence**: Firestore and In-Memory Mock Mode.
 - **ML Engine**: Custom predictive trend algorithms.
 
 ---
