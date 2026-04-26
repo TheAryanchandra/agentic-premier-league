@@ -2,6 +2,9 @@
 
 **Stadium Pulse** is a high-performance, real-time command center and fan engagement dashboard designed for the IPL 2026 match (DC vs Punjab). It transforms stadium management from reactive chaos into predictive coordination.
 
+## 🔗 Live Demo
+👉 **[Stadium Pulse Live Dashboard](https://storage.googleapis.com/aryan-487709-stadium-dashboard/index.html)**
+
 ---
 
 ## 🌍 The Real-Life Impact: Why This Matters
