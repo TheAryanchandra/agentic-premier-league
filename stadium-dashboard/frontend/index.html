@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stadium Experience Dashboard</title>
-    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <script>
-      (function () {
-        const url = new URL(window.location.href);
-        if (!url.searchParams.has("v")) {
-          url.searchParams.set("v", Date.now()); // Always fresh request
-          window.location.replace(url.toString());
-        }
-      })();
-    </script>
+    <title>IPL 2026 | Stadium Pulse - AI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.5);
+            --warning: #f59e0b;
+            --success: #10b981;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -27,336 +30,400 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         header {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 32px;
-        }
-
-        header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-        }
-
-        .dashboard-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .dashboard-section h2 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 15px;
-        }
-
-        .zones-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .zone-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 8px;
-            padding: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-
-        .zone-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .zone-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-        }
-
-        .zone-stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            padding: 40px 0;
+            animation: fadeInDown 0.8s ease-out;
         }
 
-        .zone-count {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
+        .brand h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
 
-        .zone-percentage {
+        .brand p {
+            color: var(--text-muted);
             font-size: 14px;
-            color: #666;
+            margin-top: 4px;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .card {
+            padding: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .zone-title h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .zone-title span {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-safe { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-crowded { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .progress-bar {
-            width: 100%;
             height: 8px;
-            background: #e0e0e0;
+            background: rgba(255,255,255,0.1);
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 12px;
         }
 
         .progress-fill {
             height: 100%;
             border-radius: 4px;
-            transition: width 0.3s;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .status-safe { background: #10b981; }
-        .status-crowded { background: #f59e0b; }
-        .status-danger { background: #ef4444; }
-
-        .zone-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: white;
+        .prediction-box {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .status-safe { background: #10b981; }
-        .status-crowded { background: #f59e0b; }
-        .status-danger { background: #ef4444; }
-
-        .admin-panel {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .prediction-header {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .admin-panel h3 {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .admin-form {
+        .prediction-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            align-items: end;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
-        input, select, button {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
+        .pred-item .label {
+            font-size: 10px;
+            color: var(--text-muted);
+            display: block;
         }
 
-        input, select {
-            background: white;
-            color: #333;
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            cursor: pointer;
+        .pred-item .value {
+            font-size: 16px;
             font-weight: 600;
-            transition: background 0.2s;
+            color: var(--primary);
         }
 
-        button:hover {
-            background: #5568d3;
-        }
-
-        .alerts-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .alert-item {
-            background: #f9fafb;
-            border-left: 4px solid #667eea;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .alert-danger { border-left-color: #ef4444; }
-        .alert-warning { border-left-color: #f59e0b; }
-        .alert-info { border-left-color: #3b82f6; }
-
-        .alert-message {
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        .alert-time {
-            color: #999;
-            font-size: 12px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: #f0f4ff;
-            padding: 15px;
+        .recommendation {
+            margin-top: 12px;
+            padding: 8px 12px;
             border-radius: 8px;
+            font-size: 12px;
             text-align: center;
+            font-weight: 600;
         }
 
-        .stat-label {
-            font-size: 12px;
-            color: #666;
+        .rec-ok { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .rec-avoid { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .sos-section {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(127, 29, 29, 0.4));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .sos-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .sos-content h2 {
+            font-size: 28px;
+            color: #ef4444;
             margin-bottom: 8px;
         }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
+        .sos-input-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
         }
+
+        input, select {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            outline: none;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--danger-glow);
+        }
+
+        .admin-auth {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .admin-dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+        }
+
+        .alert-item {
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .alert-danger {
+            border-left: 4px solid var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-left-color: var(--danger); }
+            50% { border-left-color: #7f1d1d; }
+            100% { border-left-color: var(--danger); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .emergency-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(239, 68, 68, 0.1);
+            pointer-events: none;
+            z-index: 1000;
+            animation: sos-flash 1s infinite;
+            display: none;
+        }
+
+        @keyframes sos-flash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .indicator-active { background: #10b981; box-shadow: 0 0 5px #10b981; }
+        .indicator-maintenance { background: #f59e0b; }
+        .indicator-closed { background: #ef4444; }
+        .resolve-btn { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .resolve-btn:hover { background: #10b981; color: white; }
+
+        /* Admin Toggle Switches */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
+        }
+
+        .admin-card-header h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .sync-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 800;
+        }
+        .sync-btn:hover { background: var(--primary); border-color: var(--primary); transform: scale(1.1); }
+        .sync-btn.minus:hover { background: var(--danger); border-color: var(--danger); }
 
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 0; }
-            header { padding: 15px; margin-bottom: 15px; }
-            .dashboard-section { padding: 15px; }
-            .dashboard { gap: 15px; }
-            
-            .zones-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .admin-form {
-                grid-template-columns: 1fr;
-            }
-
-            header h1 {
-                font-size: 24px;
-            }
-
-            .alerts-list {
-                max-height: 300px;
-            }
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        /* SOS Premium Styles */
-        .sos-container {
-            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-            color: white;
-            border: none !important;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sos-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .sos-input {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-        }
-
-        .sos-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .sos-btn {
-            background: white !important;
-            color: #ff4b2b !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-weight: 800 !important;
-            letter-spacing: 1px;
-        }
-
-        .sos-btn:hover {
-            transform: scale(1.05);
-            background: #fdfdfd !important;
-        }
-
-        .alert-danger-active {
-            animation: pulse-red 2s infinite;
-            border-left: 10px solid #ef4444 !important;
-            background: #fff5f5 !important;
-        }
-
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .emergency-badge {
-            background: #ef4444;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-right: 8px;
-            text-transform: uppercase;
+            .sos-grid { grid-template-columns: 1fr; }
+            .admin-dashboard { grid-template-columns: 1fr; }
+            header { flex-direction: column; gap: 20px; text-align: center; }
         }
     </style>
 </head>
@@ -366,255 +433,428 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const API_URL = 'https://stadium-api-551694156067.us-central1.run.app';
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://stadium-api-551694156067.us-central1.run.app';
 
         function App() {
+            const [viewMode, setViewMode] = useState('fan'); 
+            const [isAdminAuth, setIsAdminAuth] = useState(false);
+            const [adminKey, setAdminKey] = useState(localStorage.getItem('stadium_admin_key') || '');
             const [zones, setZones] = useState([]);
             const [density, setDensity] = useState({});
+            const [predictions, setPredictions] = useState({});
             const [alerts, setAlerts] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
+            const [logs, setLogs] = useState([]);
+            
             const [selectedZone, setSelectedZone] = useState('');
-            const [crowdUpdate, setCrowdUpdate] = useState('');
-            const [sosMessage, setSosMessage] = useState('');
-            const [sosSuccess, setSosSuccess] = useState(false);
+            const [crowdCount, setCrowdCount] = useState('');
+            const [sosMsg, setSosMsg] = useState('');
+            const [staffMsg, setStaffMsg] = useState('');
+            const [staffSeverity, setStaffSeverity] = useState('info');
 
-            // Fetch data on component mount and set up polling
             useEffect(() => {
+                const interval = setInterval(() => {
+                    fetchData();
+                }, 5000);
                 fetchData();
-                const interval = setInterval(fetchData, 5000); // Refresh every 5 seconds
+                if (adminKey === 'admin') setIsAdminAuth(true);
                 return () => clearInterval(interval);
-            }, []);
+            }, [viewMode]);
+
+            const addLog = (msg) => {
+                setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
+            };
 
             const fetchData = async () => {
                 try {
-                    const [zonesRes, densityRes, alertsRes] = await Promise.all([
+                    const [zRes, dRes, aRes] = await Promise.all([
                         fetch(`${API_URL}/zones`),
                         fetch(`${API_URL}/density`),
                         fetch(`${API_URL}/alerts`)
                     ]);
 
-                    if (zonesRes.ok) setZones(await zonesRes.json());
-                    if (densityRes.ok) setDensity(await densityRes.json());
-                    if (alertsRes.ok) setAlerts(await alertsRes.json());
-
+                    if (zRes.ok) {
+                        const zonesData = await zRes.json();
+                        setZones(zonesData);
+                        const predPromises = zonesData.map(z => fetch(`${API_URL}/queue/prediction/${z.id}`).then(r => r.json()));
+                        const predResults = await Promise.all(predPromises);
+                        const predMap = {};
+                        predResults.forEach(p => predMap[p.zone_id] = p);
+                        setPredictions(predMap);
+                    }
+                    if (dRes.ok) setDensity(await dRes.json());
+                    if (aRes.ok) setAlerts(await aRes.json());
+                    
                     setLoading(false);
+                    setError(null);
                 } catch (err) {
-                    setError('Failed to fetch data. Make sure the API is running.');
-                    setLoading(false);
+                    setError('API CONNECTION INTERRUPTED');
                 }
             };
 
-            const handleDensityUpdate = async () => {
-                if (!selectedZone || !crowdUpdate) {
-                    alert('Please select a zone and enter crowd count');
-                    return;
+            const handleAdminLogin = () => {
+                if (adminKey === 'admin') {
+                    setIsAdminAuth(true);
+                    localStorage.setItem('stadium_admin_key', adminKey);
+                    addLog('Staff authentication successful');
+                } else {
+                    setError('INVALID ADMIN CREDENTIALS');
                 }
+            };
 
+            const handleLogout = () => {
+                setIsAdminAuth(false);
+                localStorage.removeItem('stadium_admin_key');
+                setAdminKey('');
+            };
+
+            const updateZoneStatus = async (zoneId, status) => {
+                try {
+                    const res = await fetch(`${API_URL}/zones/update?zone_id=${zoneId}&status=${status}`, {
+                        method: 'POST',
+                        headers: { 'X-Admin-Key': adminKey }
+                    });
+                    if (res.ok) {
+                        addLog(`Zone ${zoneId} status: ${status}`);
+                        fetchData();
+                    }
+                } catch (err) { alert('Update failed'); }
+            };
+
+            const resolveAlert = async (idx) => {
+                try {
+                    const res = await fetch(`${API_URL}/alerts/resolve/${alerts.length - 1 - idx}`, {
+                        method: 'POST',
+                        headers: { 'X-Admin-Key': adminKey }
+                    });
+                    if (res.ok) {
+                        addLog(`Alert resolved`);
+                        fetchData();
+                    }
+                } catch (err) { alert('Resolution failed'); }
+            };
+
+            const updateDensity = async (zoneId, count) => {
+                const finalZone = zoneId || selectedZone;
+                const finalCount = count !== undefined ? count : parseInt(crowdCount);
+                if (!finalZone || isNaN(finalCount)) return;
                 try {
                     const res = await fetch(`${API_URL}/density/update`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            zone_id: selectedZone,
-                            current_people: parseInt(crowdUpdate)
-                        })
+                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+                        body: JSON.stringify({ zone_id: finalZone, current_people: finalCount })
                     });
-
                     if (res.ok) {
-                        setCrowdUpdate('');
+                        addLog(`Sync: ${finalZone} -> ${finalCount}`);
+                        setCrowdCount('');
                         fetchData();
                     }
-                } catch (err) {
-                    alert('Failed to update density');
-                }
+                } catch (err) { alert('Sync failed'); }
             };
 
-            const handleSOS = async () => {
-                if (!sosMessage) {
-                    alert('Please enter an emergency message');
-                    return;
-                }
+            const sendStaffAlert = async () => {
+                if (!staffMsg) return;
+                try {
+                    const res = await fetch(`${API_URL}/alerts/create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+                        body: JSON.stringify({ message: staffMsg, severity: staffSeverity })
+                    });
+                    if (res.ok) {
+                        addLog(`Broadcast: ${staffMsg}`);
+                        setStaffMsg('');
+                        fetchData();
+                    }
+                } catch (err) { alert('Broadcast failed'); }
+            };
 
+            const clearAllAlerts = async () => {
+                if (!confirm('Clear all logs?')) return;
+                try {
+                    const res = await fetch(`${API_URL}/alerts/clear`, {
+                        method: 'DELETE',
+                        headers: { 'X-Admin-Key': adminKey }
+                    });
+                    if (res.ok) fetchData();
+                } catch (err) { alert('Purge failed'); }
+            };
+
+            const sendSOS = async () => {
+                if (!sosMsg) return;
                 try {
                     const res = await fetch(`${API_URL}/alerts/create`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            msg: sosMessage,
-                            severity: 'danger'
-                        })
+                        body: JSON.stringify({ message: sosMsg, severity: 'danger', status: 'active' })
                     });
-
                     if (res.ok) {
-                        setSosMessage('');
-                        setSosSuccess(true);
-                        setTimeout(() => setSosSuccess(false), 5000);
+                        setSosMsg('');
+                        alert('SOS BROADCASTED. HELP IS ON THE WAY.');
                         fetchData();
                     }
-                } catch (err) {
-                    alert('Failed to send SOS');
-                }
+                } catch (err) { alert('SOS failed'); }
             };
 
-            const getStatusClass = (percentage) => {
-                if (percentage < 70) return 'status-safe';
-                if (percentage < 85) return 'status-crowded';
-                return 'status-danger';
+            const getStatus = (p) => {
+                if (p < 70) return 'safe';
+                if (p < 85) return 'crowded';
+                return 'danger';
             };
 
-            const getStatusText = (percentage) => {
-                if (percentage < 70) return 'Safe';
-                if (percentage < 85) return 'Crowded';
-                return 'Danger';
-            };
+            if (loading) return (
+                <div style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#0f172a'}}>
+                    <div style={{textAlign:'center'}}>
+                        <div style={{width:'50px', height:'50px', border:'4px solid #6366f1', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite', margin:'0 auto 20px'}}></div>
+                        <h2 style={{color:'#f8fafc', letterSpacing:'2px'}}>INITIALIZING NEURAL LINK</h2>
+                    </div>
+                </div>
+            );
 
-            if (loading) return <div className="loading">Loading stadium data...</div>;
+            const activeSOS = alerts.filter(a => a.severity === 'danger' && a.status === 'active');
+            const hasActiveSOS = activeSOS.length > 0;
+            const totalFans = Object.values(density).reduce((acc, d) => acc + (d.current || 0), 0);
 
             return (
                 <div className="container">
+                    {hasActiveSOS && <div className="emergency-overlay" style={{display:'block'}}></div>}
+                    
                     <header>
-                        <h1>⚽ Stadium Experience Dashboard</h1>
-                        <p>Real-time crowd monitoring • IPL Match: DC vs Punjab Super Kings</p>
+                        <div className="brand">
+                            <h1>STADIUM PULSE</h1>
+                            <p>IPL 2026: DC vs PUNJAB • Real-Time AI Dashboard {hasActiveSOS && <span style={{color:'#ef4444', fontWeight:'800', marginLeft:'15px'}}>⚠️ ACTIVE EMERGENCY</span>}</p>
+                        </div>
+                        <div className="view-toggle">
+                            <button className={`toggle-btn ${viewMode === 'fan' ? 'active' : ''}`} onClick={() => setViewMode('fan')}>FAN MODE</button>
+                            <button className={`toggle-btn ${viewMode === 'admin' ? 'active' : ''}`} onClick={() => setViewMode('admin')}>STAFF ADMIN</button>
+                        </div>
                     </header>
 
-                    {error && <div className="error">{error}</div>}
-
-                    <div className="dashboard">
-                        {/* SOS Emergency Panel */}
-                        <div className="dashboard-section sos-container">
-                            <h2 style={{ color: 'white', borderBottom: '2px solid rgba(255,255,255,0.3)' }}>🚨 IPL SOS Emergency Report</h2>
-                            <p style={{ marginBottom: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>
-                                RAPID RESPONSE: Direct line to stadium security & medical teams.
-                            </p>
-                            <div className="admin-panel" style={{ background: 'transparent', padding: 0 }}>
-                                <div className="admin-form">
-                                    <input
-                                        className="sos-input"
-                                        style={{ flex: 2 }}
-                                        type="text"
-                                        value={sosMessage}
-                                        onChange={(e) => setSosMessage(e.target.value)}
-                                        placeholder="Describe the emergency (e.g. Heart attack at Gate 4)"
-                                    />
-                                    <button 
-                                        className="sos-btn"
-                                        onClick={handleSOS}
-                                    >
-                                        ACTIVATE SOS
-                                    </button>
-                                </div>
-                                {sosSuccess && (
-                                    <div style={{ marginTop: '15px', background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-                                        ⚡ EMERGENCY SIGNAL BROADCASTED. HELP IS ON THE WAY.
-                                    </div>
-                                )}
-                            </div>
+                    {error && (
+                        <div className="glass" style={{padding:'10px 20px', marginBottom:'20px', borderColor:'#ef4444', color:'#ef4444'}}>
+                            <span style={{fontWeight:'700'}}>🚨 {error}</span>
                         </div>
-                        {/* Staff Admin Panel */}
-                        <div className="dashboard-section">
-                            <h2>👨‍💼 Staff Admin Panel</h2>
-                            <div className="admin-panel">
-                                <h3>Update Crowd Density</h3>
-                                <div className="admin-form">
-                                    <select
-                                        value={selectedZone}
-                                        onChange={(e) => setSelectedZone(e.target.value)}
-                                    >
-                                        <option value="">Select Zone</option>
-                                        {zones.map((zone) => (
-                                            <option key={zone.id} value={zone.id}>
-                                                {zone.name} (Cap: {zone.capacity})
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <input
-                                        type="number"
-                                        value={crowdUpdate}
-                                        onChange={(e) => setCrowdUpdate(e.target.value)}
-                                        placeholder="Current crowd count"
-                                        min="0"
-                                    />
-                                    <button onClick={handleDensityUpdate}>Update</button>
-                                </div>
-                            </div>
-                        </div>
+                    )}
 
-                        {/* Live Crowd Density */}
-                        <div className="dashboard-section">
-                            <h2>📊 Live Crowd Density</h2>
-                            <div className="stats-grid">
-                                {zones.map((zone) => {
-                                    const d = density[zone.id];
-                                    if (!d) return null;
-                                    return (
-                                        <div key={zone.id} className="stat-card">
-                                            <div className="stat-label">{zone.name}</div>
-                                            <div className="stat-value">{d.percentage.toFixed(0)}%</div>
-                                            <div className="stat-label">{d.current}/{d.capacity}</div>
+                    {viewMode === 'fan' ? (
+                        <div className="fan-view">
+                            <div className="card glass sos-section" style={{marginBottom:'24px'}}>
+                                <div className="sos-grid">
+                                    <div className="sos-content">
+                                        <h2>🚨 RAPID RESPONSE SOS</h2>
+                                        <p>Immediate medical or security assistance. Your location is tracked.</p>
+                                        <div className="sos-input-group">
+                                            <input type="text" placeholder="Describe the emergency..." value={sosMsg} onChange={e => setSosMsg(e.target.value)} />
+                                            <button className="btn-danger" onClick={sendSOS}>ACTIVATE SOS</button>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                    <div className="alerts-preview">
+                                        <h4 style={{marginBottom:'10px', fontSize:'11px', color:'var(--text-muted)'}}>LIVE UPDATES</h4>
+                                        <div style={{maxHeight:'150px', overflowY:'auto'}}>
+                                            {alerts.filter(a => a.status === 'active').map((a, i) => (
+                                                <div key={i} className={`alert-item ${a.severity === 'danger' ? 'alert-danger' : ''}`} style={{fontSize:'12px', padding:'10px'}}>
+                                                    {a.message}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="zones-grid">
-                                {zones.map((zone) => {
-                                    const d = density[zone.id];
-                                    if (!d) return null;
-                                    const statusClass = getStatusClass(d.percentage);
-
+                            <div className="grid">
+                                {zones.map(zone => {
+                                    const d = density[zone.id] || { percentage: 0, current: 0, capacity: zone.capacity };
+                                    const p = predictions[zone.id] || {};
+                                    const status = getStatus(d.percentage);
+                                    const isOperational = zone.status === 'active';
+                                    
                                     return (
-                                        <div key={zone.id} className="zone-card">
-                                            <div className="zone-name">{zone.name}</div>
-                                            <div className="zone-stats">
-                                                <div className="zone-count">{d.current}</div>
-                                                <div className="zone-percentage">{d.capacity} capacity</div>
+                                        <div key={zone.id} className="card glass" style={{opacity: isOperational ? 1 : 0.8, position: 'relative'}}>
+                                            {!isOperational && (
+                                                <div style={{position:'absolute', top:0, left:0, right:0, bottom:0, background:'rgba(15, 23, 42, 0.6)', zIndex:10, borderRadius:'24px', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(4px)'}}>
+                                                    <div style={{textAlign:'center', padding:'20px'}}>
+                                                        <h3 style={{color: zone.status === 'closed' ? '#ef4444' : '#f59e0b'}}>{zone.status.toUpperCase()}</h3>
+                                                        <p style={{fontSize:'12px', marginTop:'5px'}}>{zone.status === 'closed' ? 'Access Restricted' : 'Temporary Maintenance'}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="zone-header">
+                                                <div className="zone-title"><span>Zone {zone.id}</span><h3>{zone.name}</h3></div>
+                                                <div className={`status-badge status-${status}`}>{status}</div>
                                             </div>
-                                            <div className="progress-bar">
-                                                <div
-                                                    className={`progress-fill ${statusClass}`}
-                                                    style={{ width: `${Math.min(d.percentage, 100)}%` }}
-                                                />
+                                            <div className="progress-container">
+                                                <div className="progress-info"><span>Live Occupancy</span><span>{d.percentage?.toFixed(1)}%</span></div>
+                                                <div className="progress-bar">
+                                                    <div className={`progress-fill status-${status}`} style={{ width: `${Math.min(d.percentage, 100)}%`, boxShadow: `0 0 15px var(--${status})` }}></div>
+                                                </div>
+                                                <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>{d.current} / {zone.capacity} fans present</div>
                                             </div>
-                                            <span className={`zone-status ${statusClass}`}>
-                                                {getStatusText(d.percentage)} ({d.percentage.toFixed(1)}%)
-                                            </span>
+                                            <div className="prediction-box">
+                                                <div className="prediction-header">AI Crowd Forecast</div>
+                                                <div className="prediction-stats">
+                                                    <div className="pred-item"><span className="label">Next 5m</span><span className="value">{p.predicted_5min || '--'} fans</span></div>
+                                                    <div className="pred-item"><span className="label">Next 10m</span><span className="value">{p.predicted_10min || '--'} fans</span></div>
+                                                </div>
+                                                <div className={`recommendation ${p.recommendation === 'ok' ? 'rec-ok' : 'rec-avoid'}`}>{p.recommendation === 'ok' ? '✅ IDEAL TIME TO VISIT' : '⚠️ HIGH CONGESTION PREDICTED'}</div>
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
+                    ) : (
+                        <div className="admin-view">
+                            {!isAdminAuth ? (
+                                <div className="card glass admin-auth">
+                                    <h2 style={{marginBottom:'10px'}}>Mission Control Access</h2>
+                                    <p style={{color:'var(--text-muted)', fontSize:'12px', marginBottom:'25px'}}>Staff credentials required for stadium manipulation.</p>
+                                    <input type="password" placeholder="Enter Access Token" value={adminKey} onChange={e => setAdminKey(e.target.value)} style={{marginBottom:'20px'}} />
+                                    <button className="btn-primary" style={{width:'100%'}} onClick={handleAdminLogin}>AUTHENTICATE</button>
+                                    <div style={{marginTop:'20px', fontSize:'10px', color:'#475569'}}>TOKEN HINT: admin</div>
+                                </div>
+                            ) : (
+                                <div className="admin-dashboard">
+                                    <div className="admin-sidebar" style={{display:'flex', flexDirection:'column', gap:'20px'}}>
+                                        <div className="card glass" style={{padding:'10px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                                            <span style={{fontSize:'11px', fontWeight:'700'}}>STAFF SESSION</span>
+                                            <button onClick={handleLogout} style={{background:'transparent', border:'none', color:'#ef4444', fontSize:'10px', cursor:'pointer', fontWeight:'700'}}>LOGOUT</button>
+                                        </div>
 
-                        {/* Alerts */}
-                        <div className="dashboard-section">
-                            <h2>🚨 Recent Alerts</h2>
-                            <div className="alerts-list">
-                                {alerts.length === 0 ? (
-                                    <div style={{ color: '#999', padding: '20px', textAlign: 'center' }}>
-                                        No alerts
-                                    </div>
-                                ) : (
-                                    alerts.map((alert, idx) => (
-                                        <div key={idx} className={`alert-item alert-${alert.severity} ${alert.severity === 'danger' ? 'alert-danger-active' : ''}`}>
-                                            <div className="alert-message">
-                                                {alert.severity === 'danger' && <span className="emergency-badge">SOS</span>}
-                                                {alert.message}
-                                                {alert.phone && <span style={{ marginLeft: '10px', color: '#666', fontSize: '11px' }}>📞 Contact: {alert.phone}</span>}
+                                        <div className="card glass grid" style={{gridTemplateColumns:'1fr 1fr', padding:'15px', gap:'15px'}}>
+                                            <div className="kpi-card">
+                                                <div className="kpi-value">{totalFans}</div>
+                                                <div className="kpi-label">Total Fans</div>
                                             </div>
-                                            <div className="alert-time">
-                                                {new Date(alert.timestamp * 1000).toLocaleTimeString()}
+                                            <div className="kpi-card">
+                                                <div className="kpi-value" style={{color:hasActiveSOS ? '#ef4444' : '#10b981'}}>{activeSOS.length}</div>
+                                                <div className="kpi-label">Active SOS</div>
                                             </div>
                                         </div>
-                                    ))
+
+                                        <div className="card glass">
+                                                <div className="admin-card-header">
+                                                    <div style={{width:'8px', height:'8px', background:hasActiveSOS?'#ef4444':'#10b981', borderRadius:'50%'}}></div>
+                                                    <h3>Operational Overrides</h3>
+                                                </div>
+                                                <div style={{display:'flex', flexDirection:'column', gap:'12px'}}>
+                                                    {zones.map(z => (
+                                                        <div key={z.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:'12px'}}>
+                                                            <span style={{fontSize:'12px', fontWeight:'600'}}>{z.name}</span>
+                                                            <div style={{display:'flex', gap:'8px'}}>
+                                                                <select 
+                                                                    style={{width:'90px', padding:'4px 8px', fontSize:'10px', background:'rgba(0,0,0,0.4)', borderRadius:'8px'}}
+                                                                    value={z.status} 
+                                                                    onChange={e => updateZoneStatus(z.id, e.target.value)}
+                                                                >
+                                                                    <option value="active">ACTIVE</option>
+                                                                    <option value="maintenance">MAINT</option>
+                                                                    <option value="closed">CLOSED</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="card glass">
+                                                <div className="admin-card-header">
+                                                    <div style={{width:'8px', height:'8px', background:'var(--primary)', borderRadius:'50%'}}></div>
+                                                    <h3>Global Broadcast</h3>
+                                                </div>
+                                                <div style={{display:'flex', flexDirection:'column', gap:'12px'}}>
+                                                    <select value={staffSeverity} onChange={e => setStaffSeverity(e.target.value)} style={{fontSize:'11px'}}>
+                                                        <option value="info">General Info</option>
+                                                        <option value="warning">Safety Alert</option>
+                                                    </select>
+                                                    <input type="text" placeholder="Type announcement..." value={staffMsg} onChange={e => setStaffMsg(e.target.value)} style={{fontSize:'12px'}} />
+                                                    <button className="btn-primary" onClick={sendStaffAlert} style={{padding:'10px'}}>BROADCAST</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="admin-main">
+                                            <div className="card glass" style={{marginBottom:'24px', borderLeft:'4px solid var(--primary)'}}>
+                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
+                                                    <div className="admin-card-header" style={{border:'none', margin:0}}>
+                                                        <div style={{width:'8px', height:'8px', background:'#10b981', borderRadius:'50%', animation:'spin 2s linear infinite'}}></div>
+                                                        <h3 style={{margin:0}}>Mission Logistics Feed</h3>
+                                                    </div>
+                                                    <button className="btn-danger" style={{padding:'6px 12px', fontSize:'11px', borderRadius:'8px'}} onClick={clearAllAlerts}>PURGE LOGS</button>
+                                                </div>
+                                                
+                                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
+                                                    <div>
+                                                        <h4 style={{fontSize:'10px', color:'#94a3b8', marginBottom:'10px', textTransform:'uppercase'}}>Unresolved SOS</h4>
+                                                        <div style={{maxHeight:'300px', overflowY:'auto', paddingRight:'10px'}}>
+                                                            {alerts.map((a, i) => (
+                                                                <div key={i} className={`alert-item ${a.severity === 'danger' && a.status === 'active' ? 'alert-danger' : ''}`} style={{opacity: a.status === 'resolved' ? 0.5 : 1, marginBottom:'10px'}}>
+                                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', marginBottom:'4px'}}>
+                                                                        <span style={{color:a.severity==='danger'?'#ef4444':'#6366f1', fontWeight:'800'}}>
+                                                                            {a.severity.toUpperCase()}
+                                                                        </span>
+                                                                        <span style={{color:'#475569'}}>{new Date(a.timestamp*1000).toLocaleTimeString()}</span>
+                                                                    </div>
+                                                                    <div style={{fontSize:'12px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                                                                        <span style={{maxWidth:'70%'}}>{a.message}</span>
+                                                                        {a.status === 'active' && <button className="resolve-btn" onClick={() => resolveAlert(i)}>RESOLVE</button>}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {alerts.length === 0 && <div style={{textAlign:'center', color:'#475569', fontSize:'12px', padding:'20px'}}>Waiting for alerts...</div>}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h4 style={{fontSize:'10px', color:'#94a3b8', marginBottom:'10px', textTransform:'uppercase'}}>Telemetry Logs</h4>
+                                                        <div className="log-feed" style={{maxHeight:'300px', overflowY:'auto', background:'rgba(0,0,0,0.3)', padding:'15px', borderRadius:'16px', border:'1px solid rgba(255,255,255,0.05)'}}>
+                                                            {logs.map((log, i) => <div key={i} style={{marginBottom:'6px', borderBottom:'1px solid rgba(255,255,255,0.02)', paddingBottom:'4px'}}>{log}</div>)}
+                                                            {logs.length === 0 && <div style={{color:'#1e293b'}}>Link established...</div>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="card glass">
+                                                <div className="admin-card-header">
+                                                    <div style={{width:'8px', height:'8px', background:'var(--success)', borderRadius:'50%'}}></div>
+                                                    <h3>Stadium Perimeter Status</h3>
+                                                </div>
+                                                <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', marginTop:'10px', gap:'15px'}}>
+                                                    {zones.map(zone => {
+                                                        const d = density[zone.id] || { percentage: 0, current: 0 };
+                                                        const status = getStatus(d.percentage);
+                                                        return (
+                                                            <div key={zone.id} style={{padding:'20px', background:'rgba(255,255,255,0.02)', borderRadius:'20px', border:'1px solid rgba(255,255,255,0.05)', position:'relative'}}>
+                                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
+                                                                    <div style={{fontSize:'11px', color:'#94a3b8', fontWeight:'700'}}>{zone.name}</div>
+                                                                    <span className={`status-badge status-${status}`} style={{padding:'2px 8px', fontSize:'8px'}}>{status}</span>
+                                                                </div>
+                                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
+                                                                    <div style={{fontSize:'28px', fontWeight:'800', letterSpacing:'-1px'}}>{d.percentage?.toFixed(0)}%</div>
+                                                                    <div style={{display:'flex', gap:'8px'}}>
+                                                                        <button className="sync-btn minus" onClick={() => updateDensity(zone.id, Math.max(0, d.current - 100))}>-</button>
+                                                                        <button className="sync-btn" onClick={() => updateDensity(zone.id, d.current + 100)}>+</button>
+                                                                    </div>
+                                                                </div>
+                                                                <div style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'10px'}}>{d.current.toLocaleString()} / {zone.capacity.toLocaleString()} fans</div>
+                                                                <div className="progress-bar" style={{height:'4px', background:'rgba(255,255,255,0.05)'}}>
+                                                                    <div className={`progress-fill status-${status}`} style={{width:`${Math.min(d.percentage, 100)}%`, boxShadow: `0 0 10px var(--${status})`}}></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
             );
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
