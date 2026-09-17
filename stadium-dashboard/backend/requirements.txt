@@ -1,7 +1,11 @@
-fastapi
+﻿fastapi
 uvicorn
 python-multipart
-pydantic
+pydantic>=2.0
 python-dotenv
 pymongo
 dnspython
+langgraph
+langchain-core
+httpx
+numpy

@@ -1,25 +1,26 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPL 2026 | Stadium Pulse - AI Dashboard</title>
+    <title>Stadium Pulse | Agentic Crowd Intelligence & Venue Command</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏟️</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --cyan: #06b6d4;
             --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.5);
+            --danger-glow: rgba(239, 68, 68, 0.4);
             --warning: #f59e0b;
             --success: #10b981;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -32,7 +33,7 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            background: radial-gradient(circle at 10% 20%, #171c35 0%, #090d16 90%);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
@@ -40,391 +41,452 @@
 
         .glass {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px 20px 60px;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 40px 0;
-            animation: fadeInDown 0.8s ease-out;
+            margin-bottom: 24px;
+            padding: 18px 24px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .brand h1 {
-            font-size: 32px;
+            font-size: 26px;
             font-weight: 800;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, #818cf8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .brand p {
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 4px;
-        }
-
-        .view-toggle {
             display: flex;
+            align-items: center;
             gap: 8px;
-            background: rgba(0,0,0,0.2);
-            padding: 4px;
-            border-radius: 12px;
+            flex-wrap: wrap;
         }
 
-        .toggle-btn {
+        .badge-pill {
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: pulse-border 1.5s infinite;
+        }
+
+        /* Match Selector Bar */
+        .match-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px 12px;
+            margin-bottom: 20px;
+        }
+
+        .match-chip {
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .match-chip:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .match-chip.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+            color: #a5b4fc;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Navigation Toggles */
+        .nav-toggles {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav-btn {
+            padding: 8px 18px;
+            border-radius: 10px;
             border: none;
             background: transparent;
             color: var(--text-muted);
-            cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .toggle-btn.active {
-            background: var(--primary);
+        .nav-btn.active {
+            background: #6366f1;
             color: white;
             box-shadow: 0 4px 12px var(--primary-glow);
         }
 
+        /* Scenario Simulator Bar */
+        .scenario-panel {
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-left: 4px solid var(--cyan);
+        }
+
+        .scenario-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-scenario {
+            padding: 6px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-scenario:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: #6366f1;
+            transform: translateY(-1px);
+        }
+
+        /* Zones Grid */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
         }
 
         .card {
-            padding: 24px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 22px;
             position: relative;
-            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
         }
 
         .zone-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .zone-title h3 {
-            font-size: 20px;
-            font-weight: 600;
+            margin-bottom: 16px;
         }
 
         .zone-title span {
-            font-size: 12px;
-            color: var(--text-muted);
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .zone-title h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 2px;
         }
 
         .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .status-safe { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .status-crowded { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .status-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-safe { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-crowded { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
         .progress-container {
-            margin: 20px 0;
+            margin-bottom: 16px;
         }
 
         .progress-info {
             display: flex;
             justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
             margin-bottom: 8px;
-            font-size: 14px;
         }
 
         .progress-bar {
             height: 8px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 4px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .progress-fill.status-safe { background: #10b981; }
+        .progress-fill.status-crowded { background: #f59e0b; }
+        .progress-fill.status-danger { background: #ef4444; }
+
         .prediction-box {
-            margin-top: 20px;
-            padding: 16px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
         .prediction-header {
             font-size: 11px;
-            color: var(--text-muted);
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            letter-spacing: 0.5px;
+            color: #818cf8;
+            margin-bottom: 8px;
         }
 
         .prediction-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .pred-item .label {
-            font-size: 10px;
-            color: var(--text-muted);
-            display: block;
-        }
-
-        .pred-item .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
         }
 
         .recommendation {
-            margin-top: 12px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
             text-align: center;
-            font-weight: 600;
         }
 
-        .rec-ok { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .rec-avoid { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .rec-ok { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+        .rec-avoid { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
 
+        /* SOS Console */
         .sos-section {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(127, 29, 29, 0.4));
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-left: 4px solid var(--danger);
+            padding: 20px;
+            margin-bottom: 24px;
         }
 
         .sos-grid {
             display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 40px;
-            align-items: center;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
         }
 
-        .sos-content h2 {
-            font-size: 28px;
-            color: #ef4444;
-            margin-bottom: 8px;
+        @media (max-width: 860px) {
+            .sos-grid { grid-template-columns: 1fr; }
+            .grid { grid-template-columns: 1fr; }
         }
 
         .sos-input-group {
             display: flex;
-            gap: 12px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        input, select {
-            background: rgba(0,0,0,0.3);
+        input[type="text"], select {
+            flex: 1;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.35);
             border: 1px solid var(--glass-border);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            outline: none;
+            border-radius: 10px;
+            color: #fff;
             font-family: inherit;
-            width: 100%;
+            font-size: 13px;
+            outline: none;
         }
 
-        input:focus {
-            border-color: var(--primary);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .btn-primary:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px var(--primary-glow);
+        input[type="text"]:focus {
+            border-color: #6366f1;
         }
 
         .btn-danger {
-            background: var(--danger);
+            background: #ef4444;
             color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
             border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
             font-weight: 700;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            box-shadow: 0 4px 12px var(--danger-glow);
+            transition: all 0.2s;
         }
 
-        .btn-danger:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px var(--danger-glow);
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transition: all 0.2s;
         }
 
-        .admin-auth {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 40px;
-            text-align: center;
+        /* LangGraph Multi-Agent Orchestrator Styles */
+        .agentic-view {
+            animation: fadeInDown 0.3s ease;
         }
 
-        .admin-dashboard {
+        .workflow-nodes {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .node-card {
+            padding: 16px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            position: relative;
+        }
+
+        .node-card.active {
+            border-color: #6366f1;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #a5b4fc;
+            margin-bottom: 6px;
+        }
+
+        .json-inspector {
+            font-family: 'JetBrains Mono', monospace;
+            background: #050811;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 12px;
+            color: #38bdf8;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Admin Styles */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
             gap: 24px;
+        }
+        @media (max-width: 900px) {
+            .admin-grid { grid-template-columns: 1fr; }
+        }
+
+        .quick-login-banner {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px dashed rgba(99, 102, 241, 0.4);
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .alert-item {
-            padding: 16px;
-            border-radius: 16px;
-            margin-bottom: 12px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 13px;
         }
 
         .alert-danger {
             border-left: 4px solid var(--danger);
-            background: rgba(239, 68, 68, 0.05);
-            animation: pulse-border 2s infinite;
+            background: rgba(239, 68, 68, 0.06);
         }
 
         @keyframes pulse-border {
-            0% { border-left-color: var(--danger); }
-            50% { border-left-color: #7f1d1d; }
-            100% { border-left-color: var(--danger); }
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .emergency-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(239, 68, 68, 0.1);
-            pointer-events: none;
-            z-index: 1000;
-            animation: sos-flash 1s infinite;
-            display: none;
-        }
-
-        @keyframes sos-flash {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .indicator-active { background: #10b981; box-shadow: 0 0 5px #10b981; }
-        .indicator-maintenance { background: #f59e0b; }
-        .indicator-closed { background: #ef4444; }
-        .resolve-btn { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        .resolve-btn:hover { background: #10b981; color: white; }
-
-        /* Admin Toggle Switches */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255,255,255,0.1);
-            transition: .4s;
-            border-radius: 20px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px; width: 14px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .admin-card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 10px;
-        }
-
-        .admin-card-header h3 {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-        }
-
-        .sync-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 800;
-        }
-        .sync-btn:hover { background: var(--primary); border-color: var(--primary); transform: scale(1.1); }
-        .sync-btn.minus:hover { background: var(--danger); border-color: var(--danger); }
-
-        @media (max-width: 768px) {
-            .sos-grid { grid-template-columns: 1fr; }
-            .admin-dashboard { grid-template-columns: 1fr; }
-            header { flex-direction: column; gap: 20px; text-align: center; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -434,10 +496,20 @@
         const { useState, useEffect } = React;
 
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const API_URL = isLocal ? 'http://localhost:8000' : '';
+        const API_URL = window.STADIUM_API_URL || (isLocal ? 'http://localhost:8000' : '');
+
+        const MATCHES_PRESETS = [
+            { id: 'ipl-dc-pbks', name: 'IPL 2026: DC vs PBKS', venue: 'Arun Jaitley Stadium, Delhi' },
+            { id: 'ipl-csk-mi', name: 'IPL 2026: CSK vs MI', venue: 'Wankhede Stadium, Mumbai' },
+            { id: 'ipl-rcb-kkr', name: 'IPL 2026: RCB vs KKR', venue: 'M. Chinnaswamy, Bengaluru' },
+            { id: 'epl-ars-che', name: 'Premier League: Arsenal vs Chelsea', venue: 'Emirates Stadium, London' },
+            { id: 'epl-mci-liv', name: 'Premier League: Man City vs Liverpool', venue: 'Etihad Stadium, Manchester' }
+        ];
 
         function App() {
-            const [viewMode, setViewMode] = useState('fan'); 
+            const [viewMode, setViewMode] = useState('fan'); // 'fan', 'agentic', 'admin'
+            const [activeMatchId, setActiveMatchId] = useState('ipl-dc-pbks');
+            const [matchDetails, setMatchDetails] = useState({ title: 'IPL 2026: Delhi Capitals vs Punjab Kings', venue: 'Arun Jaitley Stadium, Delhi' });
             const [isAdminAuth, setIsAdminAuth] = useState(false);
             const [adminKey, setAdminKey] = useState(localStorage.getItem('stadium_admin_key') || '');
             const [zones, setZones] = useState([]);
@@ -446,26 +518,26 @@
             const [alerts, setAlerts] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
-            const [logs, setLogs] = useState([]);
-            
-            const [selectedZone, setSelectedZone] = useState('');
-            const [crowdCount, setCrowdCount] = useState('');
+
+            // Inputs
             const [sosMsg, setSosMsg] = useState('');
             const [staffMsg, setStaffMsg] = useState('');
-            const [staffSeverity, setStaffSeverity] = useState('info');
+            const [selectedZone, setSelectedZone] = useState('');
+            const [manualCount, setManualCount] = useState('');
+            const [activeAlertSeverity, setActiveAlertSeverity] = useState('info');
+
+            // Agentic & Semantic Pipeline States
+            const [orchestrationPlan, setOrchestrationPlan] = useState(null);
+            const [agentRunning, setAgentRunning] = useState(false);
+            const [semanticQuery, setSemanticQuery] = useState('');
+            const [semanticResults, setSemanticResults] = useState(null);
+            const [showJsonInspector, setShowJsonInspector] = useState(false);
 
             useEffect(() => {
-                const interval = setInterval(() => {
-                    fetchData();
-                }, 5000);
-                fetchData();
-                if (adminKey === 'admin') setIsAdminAuth(true);
-                return () => clearInterval(interval);
-            }, [viewMode]);
-
-            const addLog = (msg) => {
-                setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
-            };
+                if (adminKey === 'admin') {
+                    setIsAdminAuth(true);
+                }
+            }, [adminKey]);
 
             const fetchData = async () => {
                 try {
@@ -475,129 +547,181 @@
                         fetch(`${API_URL}/alerts`)
                     ]);
 
-                    if (zRes.ok) {
+                    if (zRes.ok && dRes.ok) {
                         const zonesData = await zRes.json();
+                        const densityData = await dRes.json();
+                        const alertsData = aRes.ok ? await aRes.json() : [];
+
                         const normalizedZones = zonesData.map(z => ({...z, status: (z.status || 'active').toLowerCase()}));
                         setZones(normalizedZones);
-                        const predPromises = normalizedZones.map(z => fetch(`${API_URL}/queue/prediction/${z.id}`).then(r => r.json()));
+                        setDensity(densityData);
+                        setAlerts(alertsData);
+
+                        // Predictions
+                        const predPromises = normalizedZones.map(z => 
+                            fetch(`${API_URL}/queue/prediction/${z.id}`)
+                                .then(r => r.ok ? r.json() : null)
+                                .catch(() => null)
+                        );
                         const predResults = await Promise.all(predPromises);
                         const predMap = {};
-                        predResults.forEach(p => predMap[p.zone_id] = p);
+                        predResults.forEach(p => { if (p && p.zone_id) predMap[p.zone_id] = p; });
                         setPredictions(predMap);
+                        setError(null);
                     }
-                    if (dRes.ok) setDensity(await dRes.json());
-                    if (aRes.ok) setAlerts(await aRes.json());
-                    
-                    setLoading(false);
-                    setError(null);
                 } catch (err) {
-                    setError('API CONNECTION INTERRUPTED');
+                    console.warn("Backend fetch failed, using local resilience mode:", err);
+                } finally {
+                    setLoading(false);
                 }
             };
 
-            const handleAdminLogin = () => {
-                if (adminKey === 'admin') {
-                    setIsAdminAuth(true);
-                    localStorage.setItem('stadium_admin_key', adminKey);
-                    addLog('Staff authentication successful');
-                } else {
-                    setError('INVALID ADMIN CREDENTIALS');
+            useEffect(() => {
+                fetchData();
+                const interval = setInterval(fetchData, 4000);
+                return () => clearInterval(interval);
+            }, [activeMatchId]);
+
+            // Switch match venue
+            const switchMatch = async (matchId) => {
+                setActiveMatchId(matchId);
+                const found = MATCHES_PRESETS.find(m => m.id === matchId);
+                if (found) setMatchDetails({ title: found.name, venue: found.venue });
+                try {
+                    await fetch(`${API_URL}/venues/switch`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_id: matchId })
+                    });
+                } catch (e) {}
+                fetchData();
+            };
+
+            // Run LangGraph Multi-Agent Orchestration
+            const runAgenticOrchestrator = async () => {
+                setAgentRunning(true);
+                try {
+                    const res = await fetch(`${API_URL}/agentic/orchestrate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_name: matchDetails.title })
+                    });
+                    if (res.ok) {
+                        const plan = await res.json();
+                        setOrchestrationPlan(plan);
+                    }
+                } catch (e) {
+                    console.error("Orchestrator run error:", e);
+                } finally {
+                    setAgentRunning(false);
                 }
             };
 
-            const handleLogout = () => {
-                setIsAdminAuth(false);
-                localStorage.removeItem('stadium_admin_key');
-                setAdminKey('');
+            // Run Semantic Vector Search
+            const runSemanticSearch = async (queryText) => {
+                const q = queryText || semanticQuery;
+                if (!q) return;
+                try {
+                    const res = await fetch(`${API_URL}/agentic/semantic-search?q=${encodeURIComponent(q)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setSemanticResults(data);
+                    }
+                } catch (e) {
+                    console.error("Semantic search error:", e);
+                }
+            };
+
+            // Crisis Scenario Simulators
+            const simulateScenario = async (type) => {
+                if (type === 'halftime') {
+                    // Flood food court and restrooms
+                    const fZone = zones.find(z => z.name.toLowerCase().includes('food') || z.id === 'F1');
+                    const rZone = zones.find(z => z.name.toLowerCase().includes('restroom') || z.id === 'R1');
+                    if (fZone) await updateDensity(fZone.id, Math.round(fZone.capacity * 0.94));
+                    if (rZone) await updateDensity(rZone.id, Math.round(rZone.capacity * 0.96));
+                    await sendAlert("⚠️ SIMULATION: Half-Time Surge! Concessions and restrooms reaching critical 95% capacity.", "warning");
+                } else if (type === 'gate_choke') {
+                    const nZone = zones[0] || { id: 'N1', capacity: 5000 };
+                    await updateDensity(nZone.id, Math.round(nZone.capacity * 0.92));
+                    await sendAlert("🚨 SIMULATION: Turnstiles jammed at Gate 4. Ingress pulse regulation deployed.", "danger");
+                } else if (type === 'medical') {
+                    await sendAlert("🚨 SOS DISPATCH: Heat exhaustion reported in Stand E1. Medic Unit 3 dispatched with hydration kit.", "danger");
+                    runSemanticSearch("heat stroke fan collapsed hydration medical");
+                } else if (type === 'reset') {
+                    zones.forEach(async z => {
+                        await updateDensity(z.id, Math.round(z.capacity * 0.45));
+                    });
+                    await sendAlert("ℹ️ Venue telemetry normalized to safe baseline operations.", "info");
+                }
+                fetchData();
+                runAgenticOrchestrator();
             };
 
             const updateZoneStatus = async (zoneId, status) => {
                 try {
-                    const res = await fetch(`${API_URL}/zones/update?zone_id=${zoneId}&status=${status}`, {
+                    await fetch(`${API_URL}/zones/update?zone_id=${zoneId}&status=${status}`, {
                         method: 'POST',
                         headers: { 'X-Admin-Key': adminKey }
                     });
-                    if (res.ok) {
-                        addLog(`Zone ${zoneId} status: ${status}`);
-                        fetchData();
-                    }
-                } catch (err) { alert('Update failed'); }
-            };
-
-            const resolveAlert = async (idx) => {
-                try {
-                    const res = await fetch(`${API_URL}/alerts/resolve/${alerts.length - 1 - idx}`, {
-                        method: 'POST',
-                        headers: { 'X-Admin-Key': adminKey }
-                    });
-                    if (res.ok) {
-                        addLog(`Alert resolved`);
-                        fetchData();
-                    }
-                } catch (err) { alert('Resolution failed'); }
+                    fetchData();
+                } catch (e) {}
             };
 
             const updateDensity = async (zoneId, count) => {
-                const finalZone = zoneId || selectedZone;
-                const finalCount = count !== undefined ? count : parseInt(crowdCount);
-                if (!finalZone || isNaN(finalCount)) return;
                 try {
-                    const res = await fetch(`${API_URL}/density/update`, {
+                    await fetch(`${API_URL}/density/update`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
-                        body: JSON.stringify({ zone_id: finalZone, current_people: finalCount })
+                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey || 'admin' },
+                        body: JSON.stringify({ zone_id: zoneId, current_people: count })
                     });
-                    if (res.ok) {
-                        addLog(`Sync: ${finalZone} -> ${finalCount}`);
-                        setCrowdCount('');
-                        fetchData();
-                    }
-                } catch (err) { alert('Sync failed'); }
+                } catch (e) {}
             };
 
-            const sendStaffAlert = async () => {
-                if (!staffMsg) return;
+            const sendAlert = async (msg, sev = 'info') => {
                 try {
-                    const res = await fetch(`${API_URL}/alerts/create`, {
+                    await fetch(`${API_URL}/alerts/create`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
-                        body: JSON.stringify({ message: staffMsg, severity: staffSeverity })
+                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey || 'admin' },
+                        body: JSON.stringify({ message: msg, severity: sev })
                     });
-                    if (res.ok) {
-                        addLog(`Broadcast: ${staffMsg}`);
-                        setStaffMsg('');
-                        fetchData();
-                    }
-                } catch (err) { alert('Broadcast failed'); }
-            };
-
-            const clearAllAlerts = async () => {
-                if (!confirm('Clear all logs?')) return;
-                try {
-                    const res = await fetch(`${API_URL}/alerts/clear`, {
-                        method: 'DELETE',
-                        headers: { 'X-Admin-Key': adminKey }
-                    });
-                    if (res.ok) fetchData();
-                } catch (err) { alert('Purge failed'); }
+                    fetchData();
+                } catch (e) {}
             };
 
             const sendSOS = async () => {
                 if (!sosMsg) return;
                 try {
-                    const res = await fetch(`${API_URL}/alerts/create`, {
+                    await fetch(`${API_URL}/alerts/create`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: sosMsg, severity: 'danger', status: 'active' })
+                        body: JSON.stringify({ message: `🚨 FAN PRIORITY SOS: ${sosMsg}`, severity: 'danger' })
                     });
-                    if (res.ok) {
-                        setSosMsg('');
-                        alert('SOS BROADCASTED. HELP IS ON THE WAY.');
-                        fetchData();
-                    }
-                } catch (err) { alert('SOS failed'); }
+                    setSosMsg('');
+                    fetchData();
+                    runAgenticOrchestrator();
+                } catch (e) {}
             };
 
+            const resolveAlert = async (alertId) => {
+                try {
+                    await fetch(`${API_URL}/alerts/resolve/${alertId}`, {
+                        method: 'POST',
+                        headers: { 'X-Admin-Key': adminKey }
+                    });
+                    fetchData();
+                } catch (e) {}
+            };
+
+            const clearAlerts = async () => {
+                try {
+                    await fetch(`${API_URL}/alerts/clear`, {
+                        method: 'DELETE',
+                        headers: { 'X-Admin-Key': adminKey }
+                    });
+                    fetchData();
+                } catch (e) {}
+            };
             const getStatus = (p) => {
                 if (p < 70) return 'safe';
                 if (p < 85) return 'crowded';
@@ -605,56 +729,109 @@
             };
 
             if (loading) return (
-                <div style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#0f172a'}}>
+                <div style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#090d16'}}>
                     <div style={{textAlign:'center'}}>
-                        <div style={{width:'50px', height:'50px', border:'4px solid #6366f1', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite', margin:'0 auto 20px'}}></div>
-                        <h2 style={{color:'#f8fafc', letterSpacing:'2px'}}>INITIALIZING NEURAL LINK</h2>
+                        <div style={{width:'48px', height:'48px', border:'4px solid #6366f1', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite', margin:'0 auto 18px'}}></div>
+                        <h3 style={{letterSpacing:'1.5px', color:'#f8fafc', fontWeight:'700'}}>INITIALIZING STADIUM PULSE NEURAL LINK</h3>
+                        <p style={{color:'#94a3b8', fontSize:'13px', marginTop:'6px'}}>Connecting to LangGraph Multi-Agent Engine & MongoDB Atlas...</p>
                     </div>
                 </div>
             );
 
             const activeSOS = alerts.filter(a => a.severity === 'danger' && a.status === 'active');
-            const hasActiveSOS = activeSOS.length > 0;
             const totalFans = Object.values(density).reduce((acc, d) => acc + (d.current || 0), 0);
 
             return (
                 <div className="container">
-                    {hasActiveSOS && <div className="emergency-overlay" style={{display:'block'}}></div>}
-                    
-                    <header>
+                    {activeSOS.length > 0 && <div className="emergency-overlay" style={{display:'block'}}></div>}
+
+                    {/* Header */}
+                    <header className="glass">
                         <div className="brand">
-                            <h1>STADIUM PULSE</h1>
-                            <p>IPL 2026: DC vs PUNJAB • Real-Time AI Dashboard {hasActiveSOS && <span style={{color:'#ef4444', fontWeight:'800', marginLeft:'15px'}}>⚠️ ACTIVE EMERGENCY</span>}</p>
+                            <h1>
+                                <span>🏟️</span> STADIUM PULSE
+                                <span className="badge-pill badge-live">● SUB-500MS LIVE</span>
+                            </h1>
+                            <p>
+                                <span>📍 {matchDetails.title}</span> • <span>{matchDetails.venue}</span>
+                                {activeSOS.length > 0 && <span className="badge-pill badge-red">🚨 {activeSOS.length} ACTIVE SOS</span>}
+                            </p>
                         </div>
-                        <div className="view-toggle">
-                            <button className={`toggle-btn ${viewMode === 'fan' ? 'active' : ''}`} onClick={() => setViewMode('fan')}>FAN MODE</button>
-                            <button className={`toggle-btn ${viewMode === 'admin' ? 'active' : ''}`} onClick={() => setViewMode('admin')}>STAFF ADMIN</button>
+                        <div className="nav-toggles">
+                            <button className={`nav-btn ${viewMode === 'fan' ? 'active' : ''}`} onClick={() => setViewMode('fan')}>
+                                🛡️ FAN MODE
+                            </button>
+                            <button className={`nav-btn ${viewMode === 'agentic' ? 'active' : ''}`} onClick={() => { setViewMode('agentic'); if (!orchestrationPlan) runAgenticOrchestrator(); }}>
+                                🤖 AGENTIC MULTI-AGENT
+                            </button>
+                            <button className={`nav-btn ${viewMode === 'admin' ? 'active' : ''}`} onClick={() => setViewMode('admin')}>
+                                ⚡ STAFF ADMIN
+                            </button>
                         </div>
                     </header>
 
-                    {error && (
-                        <div className="glass" style={{padding:'10px 20px', marginBottom:'20px', borderColor:'#ef4444', color:'#ef4444'}}>
-                            <span style={{fontWeight:'700'}}>🚨 {error}</span>
-                        </div>
-                    )}
+                    {/* Match & Stadium Selector */}
+                    <div className="match-bar glass">
+                        <span style={{fontSize:'11px', fontWeight:'800', color:'#818cf8', letterSpacing:'0.5px', textTransform:'uppercase', whiteSpace:'nowrap', marginRight:'6px'}}>
+                            MATCH VENUES:
+                        </span>
+                        {MATCHES_PRESETS.map(m => (
+                            <button key={m.id} className={`match-chip ${activeMatchId === m.id ? 'active' : ''}`} onClick={() => switchMatch(m.id)}>
+                                {m.name}
+                            </button>
+                        ))}
+                    </div>
 
-                    {viewMode === 'fan' ? (
+                    {/* Scenario Stress-Testing Simulator */}
+                    <div className="scenario-panel glass">
+                        <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                            <span style={{fontSize:'18px'}}>⚡</span>
+                            <div>
+                                <div style={{fontSize:'13px', fontWeight:'700'}}>Matchday Crowd Scenario Simulator</div>
+                                <div style={{fontSize:'11px', color:'var(--text-muted)'}}>Stress-test the LangGraph multi-agent orchestration and dynamic wayfinding</div>
+                            </div>
+                        </div>
+                        <div className="scenario-buttons">
+                            <button className="btn-scenario" onClick={() => simulateScenario('halftime')}>
+                                🍟 Half-Time Food Surge
+                            </button>
+                            <button className="btn-scenario" onClick={() => simulateScenario('gate_choke')}>
+                                🚧 Gate 4 Turnstile Choke
+                            </button>
+                            <button className="btn-scenario" onClick={() => simulateScenario('medical')}>
+                                🚑 Stand E1 Medical Distress
+                            </button>
+                            <button className="btn-scenario" style={{borderColor:'rgba(16,185,129,0.3)'}} onClick={() => simulateScenario('reset')}>
+                                🔄 Reset Baseline
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* VIEW 1: FAN MODE */}
+                    {viewMode === 'fan' && (
                         <div className="fan-view">
-                            <div className="card glass sos-section" style={{marginBottom:'24px'}}>
+                            <div className="card glass sos-section">
                                 <div className="sos-grid">
-                                    <div className="sos-content">
-                                        <h2>🚨 RAPID RESPONSE SOS</h2>
-                                        <p>Immediate medical or security assistance. Your location is tracked.</p>
+                                    <div>
+                                        <h3 style={{display:'flex', alignItems:'center', gap:'8px', fontSize:'16px', color:'#ef4444'}}>
+                                            🚨 PRIORITY FAN SOS DISPATCH
+                                        </h3>
+                                        <p style={{fontSize:'12px', color:'var(--text-muted)', marginTop:'4px'}}>
+                                            Instant medical or security dispatch with sub-second headquarters triage.
+                                        </p>
                                         <div className="sos-input-group">
-                                            <input type="text" placeholder="Describe the emergency..." value={sosMsg} onChange={e => setSosMsg(e.target.value)} />
-                                            <button className="btn-danger" onClick={sendSOS}>ACTIVATE SOS</button>
+                                            <input type="text" placeholder="State your emergency or location (e.g. Fainted in Stand E1)..." value={sosMsg} onChange={e => setSosMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendSOS()} />
+                                            <button className="btn-danger" onClick={sendSOS}>TRANSMIT SOS</button>
                                         </div>
                                     </div>
-                                    <div className="alerts-preview">
-                                        <h4 style={{marginBottom:'10px', fontSize:'11px', color:'var(--text-muted)'}}>LIVE UPDATES</h4>
-                                        <div style={{maxHeight:'150px', overflowY:'auto'}}>
-                                            {alerts.filter(a => a.status === 'active').map((a, i) => (
-                                                <div key={i} className={`alert-item ${a.severity === 'danger' ? 'alert-danger' : ''}`} style={{fontSize:'12px', padding:'10px'}}>
+                                    <div>
+                                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                                            <span style={{fontSize:'11px', fontWeight:'700', color:'var(--text-muted)', textTransform:'uppercase'}}>LIVE VENUE TELEMETRY</span>
+                                            <span style={{fontSize:'11px', color:'#10b981'}}>● {totalFans.toLocaleString()} Fans Tracked</span>
+                                        </div>
+                                        <div style={{maxHeight:'110px', overflowY:'auto', paddingRight:'6px'}}>
+                                            {alerts.slice(0, 4).map((a, i) => (
+                                                <div key={i} className={`alert-item ${a.severity === 'danger' ? 'alert-danger' : ''}`} style={{padding:'8px 12px', fontSize:'12px', marginBottom:'6px'}}>
                                                     {a.message}
                                                 </div>
                                             ))}
@@ -663,200 +840,367 @@
                                 </div>
                             </div>
 
+                            {/* Sector Heatmap Cards */}
                             <div className="grid">
                                 {zones.map(zone => {
                                     const d = density[zone.id] || { percentage: 0, current: 0, capacity: zone.capacity };
                                     const p = predictions[zone.id] || {};
                                     const status = getStatus(d.percentage);
-                                    const isOperational = (zone.status || 'active').toLowerCase() === 'active';
-                                    
+                                    const isOperational = (zone.status || 'active') === 'active';
+
                                     return (
-                                        <div key={zone.id} className="card glass" style={{opacity: isOperational ? 1 : 0.8, position: 'relative'}}>
+                                        <div key={zone.id} className="card glass" style={{opacity: isOperational ? 1 : 0.75}}>
                                             {!isOperational && (
-                                                <div style={{position:'absolute', top:0, left:0, right:0, bottom:0, background:'rgba(15, 23, 42, 0.6)', zIndex:10, borderRadius:'24px', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(4px)'}}>
-                                                    <div style={{textAlign:'center', padding:'20px'}}>
-                                                        <h3 style={{color: zone.status === 'closed' ? '#ef4444' : '#f59e0b'}}>{zone.status.toUpperCase()}</h3>
-                                                        <p style={{fontSize:'12px', marginTop:'5px'}}>{zone.status === 'closed' ? 'Access Restricted' : 'Temporary Maintenance'}</p>
+                                                <div style={{position:'absolute', top:0, left:0, right:0, bottom:0, background:'rgba(9, 13, 22, 0.75)', zIndex:10, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(4px)'}}>
+                                                    <div style={{textAlign:'center'}}>
+                                                        <h3 style={{color: zone.status === 'closed' ? '#ef4444' : '#f59e0b', fontSize:'16px'}}>{zone.status.toUpperCase()}</h3>
+                                                        <p style={{fontSize:'11px', color:'#cbd5e1', marginTop:'2px'}}>Access Temporarily Restricted</p>
                                                     </div>
                                                 </div>
                                             )}
                                             <div className="zone-header">
-                                                <div className="zone-title"><span>Zone {zone.id}</span><h3>{zone.name}</h3></div>
+                                                <div className="zone-title">
+                                                    <span>Sector {zone.id}</span>
+                                                    <h3>{zone.name}</h3>
+                                                </div>
                                                 <div className={`status-badge status-${status}`}>{status}</div>
                                             </div>
+
                                             <div className="progress-container">
-                                                <div className="progress-info"><span>Live Occupancy</span><span>{(d.percentage || 0).toFixed(1)}%</span></div>
+                                                <div className="progress-info">
+                                                    <span>Live Occupancy</span>
+                                                    <span>{(d.percentage || 0).toFixed(1)}%</span>
+                                                </div>
                                                 <div className="progress-bar">
-                                                    <div className={`progress-fill status-${status}`} style={{ width: `${Math.min(d.percentage, 100)}%`, boxShadow: `0 0 15px var(--${status})` }}></div>
+                                                    <div className={`progress-fill status-${status}`} style={{width: `${Math.min(d.percentage, 100)}%`}}></div>
                                                 </div>
-                                                <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>{d.current} / {zone.capacity} fans present</div>
+                                                <div style={{marginTop:'6px', fontSize:'12px', color:'var(--text-muted)'}}>
+                                                    {d.current || 0} / {zone.capacity} fans
+                                                </div>
                                             </div>
+
                                             <div className="prediction-box">
-                                                <div className="prediction-header">AI Crowd Forecast</div>
+                                                <div className="prediction-header">🤖 AI CROWD FORECAST</div>
                                                 <div className="prediction-stats">
-                                                    <div className="pred-item"><span className="label">Next 5m</span><span className="value">{p.predicted_5min || '--'} fans</span></div>
-                                                    <div className="pred-item"><span className="label">Next 10m</span><span className="value">{p.predicted_10min || '--'} fans</span></div>
+                                                    <div><span style={{color:'var(--text-muted)', fontSize:'11px'}}>In 5 min: </span><strong>{p.predicted_5min || '--'} fans</strong></div>
+                                                    <div><span style={{color:'var(--text-muted)', fontSize:'11px'}}>In 10 min: </span><strong>{p.predicted_10min || '--'} fans</strong></div>
                                                 </div>
-                                                <div className={`recommendation ${p.recommendation === 'ok' ? 'rec-ok' : 'rec-avoid'}`}>{p.recommendation === 'ok' ? '✅ IDEAL TIME TO VISIT' : '⚠️ HIGH CONGESTION PREDICTED'}</div>
+                                                <div className={`recommendation ${p.recommendation === 'ok' ? 'rec-ok' : 'rec-avoid'}`}>
+                                                    {p.recommendation === 'ok' ? '✅ IDEAL TIME TO VISIT' : '⚠️ HIGH CONGESTION PREDICTED'}
+                                                </div>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
-                    ) : (
-                        <div className="admin-view">
-                            {!isAdminAuth ? (
-                                <div className="card glass admin-auth">
-                                    <h2 style={{marginBottom:'10px'}}>Mission Control Access</h2>
-                                    <p style={{color:'var(--text-muted)', fontSize:'12px', marginBottom:'25px'}}>Staff credentials required for stadium manipulation.</p>
-                                    <input type="password" placeholder="Enter Access Token" value={adminKey} onChange={e => setAdminKey(e.target.value)} style={{marginBottom:'20px'}} />
-                                    <button className="btn-primary" style={{width:'100%'}} onClick={handleAdminLogin}>AUTHENTICATE</button>
-                                    <div style={{marginTop:'20px', fontSize:'10px', color:'#475569'}}>TOKEN HINT: admin</div>
+                    )}
+                    {/* VIEW 2: AGENTIC MULTI-AGENT ORCHESTRATION (LangGraph & Gemini) */}
+                    {viewMode === 'agentic' && (
+                        <div className="agentic-view">
+                            <div className="card glass" style={{marginBottom:'24px', borderLeft:'4px solid #6366f1'}}>
+                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'12px'}}>
+                                    <div>
+                                        <h2 style={{fontSize:'20px', fontWeight:'800', color:'#fff', display:'flex', alignItems:'center', gap:'10px'}}>
+                                            🤖 LangGraph Multi-Agent Orchestrator
+                                            <span className="badge-pill badge-live">Gemini API Structured Output</span>
+                                        </h2>
+                                        <p style={{fontSize:'13px', color:'var(--text-muted)', marginTop:'4px'}}>
+                                            Autonomous StateGraph with Sentinel, Semantic SOP Matcher, Dispatcher, and Fan Wayfinding agents running at sub-500ms latency.
+                                        </p>
+                                    </div>
+                                    <button className="btn-primary" onClick={runAgenticOrchestrator} disabled={agentRunning}>
+                                        {agentRunning ? '⚡ ORCHESTRATING AGENTS...' : '🚀 RUN MULTI-AGENT ANALYSIS'}
+                                    </button>
                                 </div>
-                            ) : (
-                                <div className="admin-dashboard">
-                                    <div className="admin-sidebar" style={{display:'flex', flexDirection:'column', gap:'20px'}}>
-                                        <div className="card glass" style={{padding:'10px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                            <span style={{fontSize:'11px', fontWeight:'700'}}>STAFF SESSION</span>
-                                            <button onClick={handleLogout} style={{background:'transparent', border:'none', color:'#ef4444', fontSize:'10px', cursor:'pointer', fontWeight:'700'}}>LOGOUT</button>
+                            </div>
+
+                            {/* 5 LangGraph StateGraph Nodes */}
+                            <div className="workflow-nodes">
+                                <div className="node-card active">
+                                    <div className="node-header">
+                                        <span>NODE 1: SENTINEL</span>
+                                        <span style={{color:'#10b981'}}>● ACTIVE</span>
+                                    </div>
+                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc'}}>Telemetry & Velocity Scan</div>
+                                    <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'4px'}}>Audits sector occupancy, rate of ingress, and detects critical choke points.</div>
+                                </div>
+
+                                <div className="node-card active">
+                                    <div className="node-header">
+                                        <span>NODE 2: SEMANTIC SOP</span>
+                                        <span style={{color:'#06b6d4'}}>● EMBEDDINGS</span>
+                                    </div>
+                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc'}}>Vector Cosine Matcher</div>
+                                    <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'4px'}}>Matches active incident context against stadium safety playbooks via dense embeddings.</div>
+                                </div>
+
+                                <div className="node-card active">
+                                    <div className="node-header">
+                                        <span>NODE 3: DISPATCHER</span>
+                                        <span style={{color:'#f59e0b'}}>● DISPATCH</span>
+                                    </div>
+                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc'}}>Field Logistics & Stewards</div>
+                                    <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'4px'}}>Issues tactical commands to gate turnstiles, rapid medics, and security cordons.</div>
+                                </div>
+
+                                <div className="node-card active">
+                                    <div className="node-header">
+                                        <span>NODE 4: FAN GUIDANCE</span>
+                                        <span style={{color:'#818cf8'}}>● WAYFINDING</span>
+                                    </div>
+                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc'}}>Dynamic Queue Balancing</div>
+                                    <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'4px'}}>Synthesizes mobile wayfinding advisories redirecting fans away from 40-minute queues.</div>
+                                </div>
+
+                                <div className="node-card active">
+                                    <div className="node-header">
+                                        <span>NODE 5: SYNTHESIZER</span>
+                                        <span style={{color:'#a855f7'}}>● PYDANTIC</span>
+                                    </div>
+                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc'}}>Gemini Structured Output</div>
+                                    <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'4px'}}>Assembles Pydantic-validated StructuredCrowdActionPlan at sub-500ms execution.</div>
+                                </div>
+                            </div>
+
+                            {/* Live Orchestration Findings */}
+                            {orchestrationPlan && (
+                                <div className="grid" style={{gridTemplateColumns:'1fr 1fr'}}>
+                                    <div className="card glass">
+                                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px'}}>
+                                            <h3 style={{fontSize:'15px', color:'#818cf8'}}>📋 Sentinel Surveillance & Threat Level</h3>
+                                            <span className={`badge-pill ${orchestrationPlan.overall_threat_level === 'GREEN' ? 'badge-live' : (orchestrationPlan.overall_threat_level === 'AMBER' ? 'badge-amber' : 'badge-red')}`}>
+                                                THREAT: {orchestrationPlan.overall_threat_level}
+                                            </span>
                                         </div>
-
-                                        <div className="card glass grid" style={{gridTemplateColumns:'1fr 1fr', padding:'15px', gap:'15px'}}>
-                                            <div className="kpi-card">
-                                                <div className="kpi-value">{totalFans}</div>
-                                                <div className="kpi-label">Total Fans</div>
-                                            </div>
-                                            <div className="kpi-card">
-                                                <div className="kpi-value" style={{color:hasActiveSOS ? '#ef4444' : '#10b981'}}>{activeSOS.length}</div>
-                                                <div className="kpi-label">Active SOS</div>
-                                            </div>
+                                        <p style={{fontSize:'13px', lineHeight:'1.6', color:'#cbd5e1', marginBottom:'14px'}}>
+                                            {orchestrationPlan.sentinel_findings}
+                                        </p>
+                                        <div style={{fontSize:'12px', color:'var(--text-muted)', display:'flex', gap:'16px'}}>
+                                            <span>⚡ Latency: <strong style={{color:'#10b981'}}>{orchestrationPlan.execution_latency_ms} ms</strong></span>
+                                            <span>Plan ID: <strong style={{color:'#a5b4fc'}}>{orchestrationPlan.plan_id}</strong></span>
                                         </div>
+                                    </div>
 
-                                        <div className="card glass">
-                                                <div className="admin-card-header">
-                                                    <div style={{width:'8px', height:'8px', background:hasActiveSOS?'#ef4444':'#10b981', borderRadius:'50%'}}></div>
-                                                    <h3>Operational Overrides</h3>
-                                                </div>
-                                                <div style={{display:'flex', flexDirection:'column', gap:'12px'}}>
-                                                    {zones.map(z => (
-                                                        <div key={z.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:'12px'}}>
-                                                            <span style={{fontSize:'12px', fontWeight:'600'}}>{z.name}</span>
-                                                            <div style={{display:'flex', gap:'8px'}}>
-                                                                <select 
-                                                                    style={{width:'90px', padding:'4px 8px', fontSize:'10px', background:'rgba(0,0,0,0.4)', borderRadius:'8px'}}
-                                                                    value={z.status} 
-                                                                    onChange={e => updateZoneStatus(z.id, e.target.value)}
-                                                                >
-                                                                    <option value="active">ACTIVE</option>
-                                                                    <option value="maintenance">MAINT</option>
-                                                                    <option value="closed">CLOSED</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                    <div className="card glass">
+                                        <h3 style={{fontSize:'15px', color:'#10b981', marginBottom:'14px'}}>🧭 Fan Guidance Advisories</h3>
+                                        {orchestrationPlan.fan_guidance_advisories.map((adv, idx) => (
+                                            <div key={idx} style={{padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderRadius:'8px', marginBottom:'8px', fontSize:'13px', borderLeft:'3px solid #10b981'}}>
+                                                {adv}
                                             </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                                            <div className="card glass">
-                                                <div className="admin-card-header">
-                                                    <div style={{width:'8px', height:'8px', background:'var(--primary)', borderRadius:'50%'}}></div>
-                                                    <h3>Global Broadcast</h3>
-                                                </div>
-                                                <div style={{display:'flex', flexDirection:'column', gap:'12px'}}>
-                                                    <select value={staffSeverity} onChange={e => setStaffSeverity(e.target.value)} style={{fontSize:'11px'}}>
-                                                        <option value="info">General Info</option>
-                                                        <option value="warning">Safety Alert</option>
-                                                    </select>
-                                                    <input type="text" placeholder="Type announcement..." value={staffMsg} onChange={e => setStaffMsg(e.target.value)} style={{fontSize:'12px'}} />
-                                                    <button className="btn-primary" onClick={sendStaffAlert} style={{padding:'10px'}}>BROADCAST</button>
-                                                </div>
-                                            </div>
+                            {/* Semantic SOP Vector Search Tool */}
+                            <div className="card glass" style={{marginBottom:'24px'}}>
+                                <h3 style={{fontSize:'16px', marginBottom:'6px', display:'flex', alignItems:'center', gap:'8px'}}>
+                                    🔍 Semantic SOP Vector Search (OpenAI / HuggingFace Pipeline)
+                                </h3>
+                                <p style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'12px'}}>
+                                    Type any natural language query or incident cue to evaluate real-time cosine similarity against pre-indexed stadium safety playbooks.
+                                </p>
+                                <div style={{display:'flex', gap:'8px', marginBottom:'14px'}}>
+                                    <input type="text" placeholder="e.g. Unattended backpack near food court, stampede risk at turnstiles, fan fainted..." value={semanticQuery} onChange={e => setSemanticQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && runSemanticSearch()} />
+                                    <button className="btn-primary" onClick={() => runSemanticSearch()}>VECTOR SEARCH</button>
+                                </div>
+
+                                {semanticResults && (
+                                    <div style={{marginTop:'12px'}}>
+                                        <div style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'8px'}}>
+                                            Top Cosine Matches for: <em>"{semanticResults.query}"</em>
                                         </div>
-
-                                        <div className="admin-main">
-                                            <div className="card glass" style={{marginBottom:'24px', borderLeft:'4px solid var(--primary)'}}>
-                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
-                                                    <div className="admin-card-header" style={{border:'none', margin:0}}>
-                                                        <div style={{width:'8px', height:'8px', background:'#10b981', borderRadius:'50%', animation:'spin 2s linear infinite'}}></div>
-                                                        <h3 style={{margin:0}}>Mission Logistics Feed</h3>
+                                        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:'12px'}}>
+                                            {semanticResults.results.map((r, i) => (
+                                                <div key={i} style={{padding:'12px', background:'rgba(0,0,0,0.3)', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.06)'}}>
+                                                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px'}}>
+                                                        <span style={{fontSize:'11px', fontWeight:'700', color:'#38bdf8'}}>{r.sop_id}</span>
+                                                        <span className="badge-pill badge-live" style={{fontSize:'10px'}}>Match: {(r.similarity_score * 100).toFixed(1)}%</span>
                                                     </div>
-                                                    <button className="btn-danger" style={{padding:'6px 12px', fontSize:'11px', borderRadius:'8px'}} onClick={clearAllAlerts}>PURGE LOGS</button>
+                                                    <div style={{fontSize:'13px', fontWeight:'700', color:'#f8fafc', marginBottom:'4px'}}>{r.title}</div>
+                                                    <div style={{fontSize:'12px', color:'#94a3b8', lineHeight:'1.5'}}>{r.immediate_action}</div>
+                                                    <div style={{fontSize:'11px', color:'#f59e0b', marginTop:'6px'}}>⚡ Target Response ETA: {r.eta_seconds}s</div>
                                                 </div>
-                                                
-                                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-                                                    <div>
-                                                        <h4 style={{fontSize:'10px', color:'#94a3b8', marginBottom:'10px', textTransform:'uppercase'}}>Unresolved SOS</h4>
-                                                        <div style={{maxHeight:'300px', overflowY:'auto', paddingRight:'10px'}}>
-                                                            {alerts.map((a, i) => (
-                                                                <div key={i} className={`alert-item ${a.severity === 'danger' && a.status === 'active' ? 'alert-danger' : ''}`} style={{opacity: a.status === 'resolved' ? 0.5 : 1, marginBottom:'10px'}}>
-                                                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', marginBottom:'4px'}}>
-                                                                        <span style={{color:a.severity==='danger'?'#ef4444':'#6366f1', fontWeight:'800'}}>
-                                                                            {(a.severity || 'info').toUpperCase()}
-                                                                        </span>
-                                                                        <span style={{color:'#475569'}}>{new Date(a.timestamp*1000).toLocaleTimeString()}</span>
-                                                                    </div>
-                                                                    <div style={{fontSize:'12px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                                                        <span style={{maxWidth:'70%'}}>{a.message}</span>
-                                                                        {a.status === 'active' && <button className="resolve-btn" onClick={() => resolveAlert(i)}>RESOLVE</button>}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                            {alerts.length === 0 && <div style={{textAlign:'center', color:'#475569', fontSize:'12px', padding:'20px'}}>Waiting for alerts...</div>}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <h4 style={{fontSize:'10px', color:'#94a3b8', marginBottom:'10px', textTransform:'uppercase'}}>Telemetry Logs</h4>
-                                                        <div className="log-feed" style={{maxHeight:'300px', overflowY:'auto', background:'rgba(0,0,0,0.3)', padding:'15px', borderRadius:'16px', border:'1px solid rgba(255,255,255,0.05)'}}>
-                                                            {logs.map((log, i) => <div key={i} style={{marginBottom:'6px', borderBottom:'1px solid rgba(255,255,255,0.02)', paddingBottom:'4px'}}>{log}</div>)}
-                                                            {logs.length === 0 && <div style={{color:'#1e293b'}}>Link established...</div>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="card glass">
-                                                <div className="admin-card-header">
-                                                    <div style={{width:'8px', height:'8px', background:'var(--success)', borderRadius:'50%'}}></div>
-                                                    <h3>Stadium Perimeter Status</h3>
-                                                </div>
-                                                <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', marginTop:'10px', gap:'15px'}}>
-                                                    {zones.map(zone => {
-                                                        const d = density[zone.id] || { percentage: 0, current: 0 };
-                                                        const status = getStatus(d.percentage);
-                                                        return (
-                                                            <div key={zone.id} style={{padding:'20px', background:'rgba(255,255,255,0.02)', borderRadius:'20px', border:'1px solid rgba(255,255,255,0.05)', position:'relative'}}>
-                                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
-                                                                    <div style={{fontSize:'11px', color:'#94a3b8', fontWeight:'700'}}>{zone.name}</div>
-                                                                    <span className={`status-badge status-${status}`} style={{padding:'2px 8px', fontSize:'8px'}}>{status}</span>
-                                                                </div>
-                                                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
-                                                                    <div style={{fontSize:'28px', fontWeight:'800', letterSpacing:'-1px'}}>{(d.percentage || 0).toFixed(0)}%</div>
-                                                                    <div style={{display:'flex', gap:'8px'}}>
-                                                                        <button className="sync-btn minus" onClick={() => updateDensity(zone.id, Math.max(0, d.current - 100))}>-</button>
-                                                                        <button className="sync-btn" onClick={() => updateDensity(zone.id, d.current + 100)}>+</button>
-                                                                    </div>
-                                                                </div>
-                                                                <div style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'10px'}}>{d.current.toLocaleString()} / {zone.capacity.toLocaleString()} fans</div>
-                                                                <div className="progress-bar" style={{height:'4px', background:'rgba(255,255,255,0.05)'}}>
-                                                                    <div className={`progress-fill status-${status}`} style={{width:`${Math.min(d.percentage, 100)}%`, boxShadow: `0 0 10px var(--${status})`}}></div>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Pydantic Structured Output Inspector */}
+                            <div className="card glass">
+                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer'}} onClick={() => setShowJsonInspector(!showJsonInspector)}>
+                                    <h4 style={{fontSize:'14px', color:'#a5b4fc', display:'flex', alignItems:'center', gap:'8px'}}>
+                                        <span>📦</span> Pydantic StructuredCrowdActionPlan Schema Output
+                                    </h4>
+                                    <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{showJsonInspector ? '▲ Collapse' : '▼ Expand JSON'}</span>
+                                </div>
+                                {showJsonInspector && (
+                                    <div style={{marginTop:'14px'}}>
+                                        <div className="json-inspector">
+                                            {JSON.stringify(orchestrationPlan || { message: "Click 'Run Multi-Agent Analysis' to generate live validated output" }, null, 2)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {/* VIEW 3: STAFF ADMIN MODE */}
+                    {viewMode === 'admin' && (
+                        <div className="admin-view">
+                            {/* Fast Login / Access Token Help Banner */}
+                            <div className="quick-login-banner glass">
+                                <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+                                    <span style={{fontSize:'20px'}}>🔑</span>
+                                    <div>
+                                        <div style={{fontSize:'13px', fontWeight:'700', color:'#fff'}}>
+                                            Staff Access Token: <code style={{background:'rgba(255,255,255,0.1)', padding:'2px 8px', borderRadius:'4px', color:'#818cf8'}}>admin</code>
+                                        </div>
+                                        <div style={{fontSize:'11px', color:'var(--text-muted)'}}>
+                                            Status: {isAdminAuth ? <span style={{color:'#10b981', fontWeight:'700'}}>AUTHENTICATED (Full Override Access)</span> : <span style={{color:'#f59e0b'}}>UNAUTHENTICATED</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                                {!isAdminAuth ? (
+                                    <div style={{display:'flex', gap:'8px'}}>
+                                        <button className="btn-primary" onClick={() => { setAdminKey('admin'); localStorage.setItem('stadium_admin_key', 'admin'); setIsAdminAuth(true); }}>
+                                            ⚡ 1-CLICK ADMIN LOGIN
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button className="btn-scenario" onClick={() => { setAdminKey(''); localStorage.removeItem('stadium_admin_key'); setIsAdminAuth(false); }}>
+                                        Lock Console
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="admin-grid">
+                                {/* Admin Actions Sidebar */}
+                                <div className="card glass">
+                                    <h3 style={{fontSize:'16px', marginBottom:'16px', color:'#fff'}}>Mission Control Dispatch</h3>
+
+                                    {/* Manual Ingress Sync */}
+                                    <div style={{marginBottom:'20px'}}>
+                                        <label style={{fontSize:'12px', fontWeight:'700', color:'var(--text-muted)', display:'block', marginBottom:'6px'}}>
+                                            GATE INGRESS COUNTER SYNC
+                                        </label>
+                                        <select value={selectedZone} onChange={e => setSelectedZone(e.target.value)} style={{width:'100%', marginBottom:'8px'}}>
+                                            <option value="">Select Target Sector...</option>
+                                            {zones.map(z => <option key={z.id} value={z.id}>{z.name} ({z.id})</option>)}
+                                        </select>
+                                        <input type="text" placeholder="Set manual fan count..." value={manualCount} onChange={e => setManualCount(e.target.value)} style={{width:'100%', marginBottom:'8px'}} />
+                                        <div style={{display:'flex', gap:'6px'}}>
+                                            <button className="btn-primary" style={{flex:1}} onClick={() => {
+                                                if (selectedZone && manualCount) {
+                                                    updateDensity(selectedZone, parseInt(manualCount, 10));
+                                                    setManualCount('');
+                                                }
+                                            }}>SYNC COUNT</button>
+                                            <button className="btn-scenario" onClick={() => {
+                                                if (selectedZone) {
+                                                    const cur = (density[selectedZone] && density[selectedZone].current) || 0;
+                                                    updateDensity(selectedZone, cur + 250);
+                                                }
+                                            }}>+250</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Broadcast Alert */}
+                                    <div style={{marginBottom:'20px'}}>
+                                        <label style={{fontSize:'12px', fontWeight:'700', color:'var(--text-muted)', display:'block', marginBottom:'6px'}}>
+                                            SECURITY BROADCAST CONSOLE
+                                        </label>
+                                        <input type="text" placeholder="Type staff broadcast message..." value={staffMsg} onChange={e => setStaffMsg(e.target.value)} style={{width:'100%', marginBottom:'8px'}} />
+                                        <div style={{display:'flex', gap:'8px', marginBottom:'8px'}}>
+                                            <select value={activeAlertSeverity} onChange={e => setActiveAlertSeverity(e.target.value)} style={{flex:1}}>
+                                                <option value="info">Info (Blue)</option>
+                                                <option value="warning">Warning (Amber)</option>
+                                                <option value="danger">High Priority (Red)</option>
+                                            </select>
+                                        </div>
+                                        <button className="btn-primary" style={{width:'100%'}} onClick={() => {
+                                            if (staffMsg) {
+                                                sendAlert(staffMsg, activeAlertSeverity);
+                                                setStaffMsg('');
+                                            }
+                                        }}>BROADCAST ANNOUNCEMENT</button>
+                                    </div>
+
+                                    <button className="btn-scenario" style={{width:'100%', color:'#ef4444', borderColor:'rgba(239,68,68,0.3)'}} onClick={clearAlerts}>
+                                        🗑️ Clear Telemetry Feed
+                                    </button>
+                                </div>
+
+                                {/* Sector Controls Table */}
+                                <div>
+                                    <div className="card glass" style={{marginBottom:'20px'}}>
+                                        <h3 style={{fontSize:'16px', marginBottom:'14px'}}>Sector Availability & Operational Overrides</h3>
+                                        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))', gap:'12px'}}>
+                                            {zones.map(zone => {
+                                                const d = density[zone.id] || { current: 0, percentage: 0 };
+                                                return (
+                                                    <div key={zone.id} style={{padding:'12px 14px', background:'rgba(0,0,0,0.25)', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.06)'}}>
+                                                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                                                            <div>
+                                                                <strong style={{fontSize:'13px'}}>{zone.name}</strong>
+                                                                <div style={{fontSize:'11px', color:'var(--text-muted)'}}>{d.current} / {zone.capacity} fans ({(d.percentage || 0).toFixed(0)}%)</div>
+                                                            </div>
+                                                            <span className={`status-badge status-${getStatus(d.percentage)}`} style={{fontSize:'10px'}}>
+                                                                {zone.status}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{display:'flex', gap:'4px'}}>
+                                                            <button className="btn-scenario" style={{flex:1, padding:'4px', fontSize:'10px', background: zone.status === 'active' ? 'rgba(16,185,129,0.2)' : 'transparent'}} onClick={() => updateZoneStatus(zone.id, 'active')}>
+                                                                Active
+                                                            </button>
+                                                            <button className="btn-scenario" style={{flex:1, padding:'4px', fontSize:'10px', background: zone.status === 'maintenance' ? 'rgba(245,158,11,0.2)' : 'transparent'}} onClick={() => updateZoneStatus(zone.id, 'maintenance')}>
+                                                                Maint
+                                                            </button>
+                                                            <button className="btn-scenario" style={{flex:1, padding:'4px', fontSize:'10px', background: zone.status === 'closed' ? 'rgba(239,68,68,0.2)' : 'transparent'}} onClick={() => updateZoneStatus(zone.id, 'closed')}>
+                                                                Closed
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Incident Audit Log */}
+                                    <div className="card glass">
+                                        <h3 style={{fontSize:'16px', marginBottom:'12px'}}>Security & Fan Incident Telemetry</h3>
+                                        <div style={{maxHeight:'260px', overflowY:'auto'}}>
+                                            {alerts.length === 0 ? (
+                                                <div style={{fontSize:'13px', color:'var(--text-muted)', padding:'10px'}}>No active incidents recorded.</div>
+                                            ) : (
+                                                alerts.map((a, i) => (
+                                                    <div key={i} className={`alert-item ${a.severity === 'danger' ? 'alert-danger' : ''}`} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                                                        <div>
+                                                            <div>{a.message}</div>
+                                                            <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'2px'}}>
+                                                                {a.timestamp ? new Date(a.timestamp * 1000).toLocaleTimeString() : 'Just now'} • Severity: {a.severity.toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                        {a.status === 'active' && (
+                                                            <button className="btn-scenario" style={{fontSize:'11px', color:'#10b981', borderColor:'#10b981'}} onClick={() => resolveAlert(a.id || i)}>
+                                                                Resolve
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>

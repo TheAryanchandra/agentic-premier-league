@@ -304,6 +304,54 @@ def get_queue_prediction(zone_id: str):
         "recommendation": "avoid" if predicted_in_10min > 2500 else "ok"
     }
 
+
+# --- LangGraph Multi-Agent Orchestration & Semantic SOP Endpoints ---
+try:
+    from agentic import orchestrator, semantic_pipeline, StructuredCrowdActionPlan
+except ImportError:
+    from .agentic import orchestrator, semantic_pipeline, StructuredCrowdActionPlan
+
+@app.post("/agentic/orchestrate", response_model=StructuredCrowdActionPlan)
+@app.get("/agentic/orchestrate")
+def run_agentic_orchestration(match_name: Optional[str] = None):
+    current_zones = [z.model_dump() for z in MOCK_ZONES]
+    if db is not None:
+        try:
+            z_docs = list(db.zones.find({}, {"_id": 0}))
+            if z_docs:
+                current_zones = z_docs
+        except Exception:
+            pass
+    density_data = get_density()
+    alerts_data = get_alerts()
+    return orchestrator.run(
+        match_name=match_name or "IPL 2026: DC vs Punjab",
+        zones=current_zones,
+        density=density_data,
+        alerts=alerts_data
+    )
+
+@app.get("/agentic/semantic-search")
+@app.post("/agentic/semantic-search")
+def semantic_sop_search(q: str = "stampede crowd hazard"):
+    results = semantic_pipeline.search(q, top_k=3)
+    return {
+        "query": q,
+        "pipeline": "OpenAI/HuggingFace-Compatible Cosine Vector Matcher",
+        "results": [
+            {
+                "sop_id": r["sop"]["id"],
+                "title": r["sop"]["title"],
+                "category": r["sop"]["category"],
+                "urgency": r["sop"]["urgency"],
+                "similarity_score": r["similarity_score"],
+                "immediate_action": r["sop"]["action"],
+                "eta_seconds": r["sop"]["eta"]
+            }
+            for r in results
+        ]
+    }
+
 @app.get("/health")
 def health_check():
     return {
