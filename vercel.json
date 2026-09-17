@@ -1,6 +1,5 @@
-{
+﻿{
   "version": 2,
-  "buildCommand": "npm install",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/zones/:path*", "destination": "/api/index.js" },

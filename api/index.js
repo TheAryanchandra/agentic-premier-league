@@ -7,6 +7,7 @@ const ATLAS_URI = 'mongodb+srv://aryanchandra3456_db_user:usB9HryhQd2PhI8U@stadi
 const rawUri = process.env.MONGODB_URI || process.env.MONGO_URL || ATLAS_URI;
 const hasPlaceholder = rawUri.includes('<db_username>') || rawUri.includes('<db_password>');
 
+let lastError = null;
 let cachedClient = null;
 let cachedDb = null;
 let MongoClient = null;
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
         if (cleanPath === '/' || cleanPath === '') {
             return res.status(200).json({
                 status: "Stadium Experience Dashboard API",
-                version: "2.0.0",
+                version: "2.1.0",
                 database: dbConnected ? "MongoDB Atlas (Connected)" : "In-Memory / Mock Mode",
                 cluster: DB_NAME,
                 endpoints: ["/zones", "/density", "/alerts", "/queue/prediction/:id", "/health"]
@@ -145,7 +146,8 @@ export default async function handler(req, res) {
                 status: "healthy",
                 database: dbConnected ? "connected" : "mock-fallback",
                 cluster: DB_NAME,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                version: "2.1.0"
             });
         }
 
