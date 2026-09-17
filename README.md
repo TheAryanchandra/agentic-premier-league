@@ -159,36 +159,5 @@ Use the built-in scenario stress-testing buttons on the dashboard to test the re
 
 ---
 
-## 🚀 Running Locally with Docker
-
-To spin up both frontend and backend containers connected to the live MongoDB Atlas cluster:
-
-```bash
-# Clone repository
-git clone https://github.com/TheAryanchandra/agentic-premier-league.git
-cd agentic-premier-league
-
-# Start containers
-docker compose up --build
-```
-
-- **Frontend Interface**: `http://localhost:3000`
-- **FastAPI Backend Documentation**: `http://localhost:8000/docs`
-- **Health & Telemetry Endpoint**: `http://localhost:8000/health`
-
----
-
-## ☁️ Google Cloud Run Deployment
-
-```bash
-# Deploy backend container to Google Cloud Run
-gcloud run deploy stadium-pulse-backend \
-  --source ./stadium-dashboard/backend \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars="MONGODB_URI=mongodb+srv://aryanchandra3456_db_user:usB9HryhQd2PhI8U@stadiumpulse.i5eaqkc.mongodb.net/StadiumPulse?retryWrites=true&w=majority&appName=StadiumPulse,ADMIN_KEY=admin"
-```
-
----
 
 *Developed for the Google Cloud Agentic Premier League Challenge | April 2026*
