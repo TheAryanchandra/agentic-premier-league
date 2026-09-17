@@ -1,0 +1,14 @@
+{
+  "name": "agentic-premier-league",
+  "version": "1.0.0",
+  "description": "Stadium Experience & Crowd Intelligence Dashboard",
+  "type": "module",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.8.0"
+  }
+}

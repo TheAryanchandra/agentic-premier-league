@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/zones", "destination": "/api/index.js" },
+    { "source": "/zones/(.*)", "destination": "/api/index.js" },
+    { "source": "/density", "destination": "/api/index.js" },
+    { "source": "/density/(.*)", "destination": "/api/index.js" },
+    { "source": "/alerts", "destination": "/api/index.js" },
+    { "source": "/alerts/(.*)", "destination": "/api/index.js" },
+    { "source": "/queue/(.*)", "destination": "/api/index.js" },
+    { "source": "/health", "destination": "/api/index.js" },
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
+}

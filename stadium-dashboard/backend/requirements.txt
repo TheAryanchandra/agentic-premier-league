@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-firebase-admin
 pydantic
 python-dotenv
+pymongo
+dnspython

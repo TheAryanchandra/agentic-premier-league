@@ -1,19 +1,16 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, AliasChoices
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 from typing import List, Dict, Optional
-import json
+from dotenv import load_dotenv
 
-# Firebase imports
-try:
-    import firebase_admin
-    from firebase_admin import credentials, firestore
-except ImportError:
-    print("Firebase not installed, will work in mock mode")
+load_dotenv()
 
 ADMIN_KEY = os.getenv("ADMIN_KEY", "admin")
+MONGODB_URI = os.getenv("MONGODB_URI", os.getenv("MONGO_URL", ""))
+DB_NAME = "StadiumPulse"
 
 async def verify_admin(x_admin_key: Optional[str] = Header(None)):
     if x_admin_key != ADMIN_KEY:
@@ -31,20 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def init_firebase():
-    try:
-        if not firebase_admin._apps:
-            cred = credentials.Certificate("firebase-key.json")
-            firebase_admin.initialize_app(cred)
-        return firestore.client()
-    except:
-        print("⚠️  Firebase not initialized. Using mock data.")
-        return None
-
-db = init_firebase()
-
-
 class Zone(BaseModel):
     id: str
     name: str
@@ -54,17 +37,16 @@ class Zone(BaseModel):
 class DensityUpdate(BaseModel):
     zone_id: str
     current_people: int
-    timestamp: float = None
+    timestamp: Optional[float] = None
 
 class Alert(BaseModel):
-    id: str = None
+    id: Optional[str] = None
     message: str = Field(..., validation_alias=AliasChoices("message", "msg"))
-    zone_id: str = None
-    phone: str = None
+    zone_id: Optional[str] = None
+    phone: Optional[str] = None
     severity: str = "info"  # info, warning, danger
     status: str = "active"  # active, resolved
-    timestamp: float = None
-
+    timestamp: Optional[float] = None
 
 MOCK_ZONES = [
     Zone(id="N1", name="North Stand", capacity=5000, status="active"),
@@ -86,37 +68,71 @@ MOCK_DENSITY = {
 
 MOCK_ALERTS = []
 
+def init_db():
+    if not MONGODB_URI or "<db_username>" in MONGODB_URI or "<password>" in MONGODB_URI:
+        print("⚠️ MongoDB URI missing or contains placeholder. Operating in resilient mock mode.")
+        return None
+    try:
+        from pymongo import MongoClient
+        client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        database = client[DB_NAME]
+        
+        # Seed default zones if empty
+        if database.zones.count_documents({}) == 0:
+            database.zones.insert_many([z.model_dump() for z in MOCK_ZONES])
+            
+        # Seed density if empty
+        if not database.venue.find_one({"_id": "current_density"}):
+            database.venue.insert_one({"_id": "current_density", **MOCK_DENSITY})
+            
+        print(" Connected to MongoDB Atlas - Cluster:", DB_NAME)
+        return database
+    except Exception as e:
+        print(f"⚠️ MongoDB connection failed: {e}. Falling back to mock data.")
+        return None
 
+db = init_db()
 
 @app.get("/")
 def read_root():
     return {
         "status": "Stadium Experience Dashboard API",
-        "version": "1.0.0",
+        "version": "2.0.0",
+        "database": "MongoDB Atlas" if db is not None else "Mock In-Memory",
+        "cluster": DB_NAME,
         "endpoints": {
             "zones": "/zones",
             "density": "/density",
             "density/update": "POST /density/update",
             "alerts": "/alerts",
-            "alert/create": "POST /alerts/create"
+            "alert/create": "POST /alerts/create",
+            "health": "/health"
         }
     }
 
-
 @app.get("/zones", response_model=List[Dict])
 def get_zones():
-    if db:
+    if db is not None:
         try:
-            zones = db.collection("zones").stream()
-            return [z.to_dict() for z in zones]
-        except:
-            return [z.model_dump() for z in MOCK_ZONES]
+            zones = list(db.zones.find({}, {"_id": 0}))
+            if zones:
+                return zones
+        except Exception as e:
+            print("MongoDB get_zones error:", e)
     return [z.model_dump() for z in MOCK_ZONES]
 
 @app.post("/zones/update")
 def update_zone_status(zone_id: str, status: str, admin: str = Depends(verify_admin)):
     if status not in ["active", "maintenance", "closed"]:
         raise HTTPException(status_code=400, detail="Invalid status")
+    
+    if db is not None:
+        try:
+            result = db.zones.update_one({"id": zone_id}, {"$set": {"status": status}})
+            if result.matched_count > 0:
+                return {"status": "success", "zone_id": zone_id, "new_status": status}
+        except Exception as e:
+            print("MongoDB update_zone error:", e)
     
     for zone in MOCK_ZONES:
         if zone.id == zone_id:
@@ -127,32 +143,36 @@ def update_zone_status(zone_id: str, status: str, admin: str = Depends(verify_ad
 
 @app.get("/density")
 def get_density():
-    if db:
+    density_map = MOCK_DENSITY
+    zone_capacities = {z.id: z.capacity for z in MOCK_ZONES}
+
+    if db is not None:
         try:
-            density_doc = db.collection("venue").document("current_density").get()
-            if density_doc.exists:
-                return density_doc.to_dict()
-        except:
-            pass
-    
+            doc = db.venue.find_one({"_id": "current_density"})
+            if doc:
+                doc.pop("_id", None)
+                density_map = doc
+            z_docs = list(db.zones.find({}, {"_id": 0, "id": 1, "capacity": 1}))
+            if z_docs:
+                zone_capacities = {z["id"]: z["capacity"] for z in z_docs}
+        except Exception as e:
+            print("MongoDB get_density error:", e)
 
     result = {}
-    for zone_id, data in MOCK_DENSITY.items():
-        zone = next((z for z in MOCK_ZONES if z.id == zone_id), None)
-        if zone:
-            percentage = (data["current"] / zone.capacity) * 100
-            status = "safe" if percentage < 70 else "crowded" if percentage < 85 else "danger"
-            result[zone_id] = {
-                "current": data["current"],
-                "capacity": zone.capacity,
-                "percentage": round(percentage, 1),
-                "status": status,
-                "trend": data["trend"],
-                "last_update": data["last_update"]
-            }
+    for zone_id, data in density_map.items():
+        capacity = zone_capacities.get(zone_id, 3000)
+        current = data.get("current", 0)
+        percentage = (current / capacity) * 100 if capacity > 0 else 0
+        status = "safe" if percentage < 70 else "crowded" if percentage < 85 else "danger"
+        result[zone_id] = {
+            "current": current,
+            "capacity": capacity,
+            "percentage": round(percentage, 1),
+            "status": status,
+            "trend": data.get("trend", [current]),
+            "last_update": data.get("last_update", datetime.now().timestamp())
+        }
     return result
-
-
 
 @app.post("/density/update")
 def update_density(update: DensityUpdate, admin: str = Depends(verify_admin)):
@@ -160,20 +180,25 @@ def update_density(update: DensityUpdate, admin: str = Depends(verify_admin)):
     current_people = update.current_people
     timestamp = update.timestamp or datetime.now().timestamp()
     
-    if db:
+    if db is not None:
         try:
-            # Update in Firestore
-            db.collection("venue").document("current_density").update({
-                f"{zone_id}.current": current_people,
-                f"{zone_id}.last_update": timestamp
-            })
-            return {"status": "success", "zone_id": zone_id, "people": current_people}
-        except:
-            pass
+            doc = db.venue.find_one({"_id": "current_density"})
+            if doc and zone_id in doc:
+                old_trend = doc[zone_id].get("trend", [current_people])
+                new_trend = old_trend[1:] + [current_people]
+                db.venue.update_one(
+                    {"_id": "current_density"},
+                    {"$set": {
+                        f"{zone_id}.current": current_people,
+                        f"{zone_id}.trend": new_trend,
+                        f"{zone_id}.last_update": timestamp
+                    }}
+                )
+                return {"status": "success", "zone_id": zone_id, "people": current_people}
+        except Exception as e:
+            print("MongoDB update_density error:", e)
     
-
     if zone_id in MOCK_DENSITY:
-        # Keep trend (last 5 values for better ML)
         MOCK_DENSITY[zone_id]["trend"] = MOCK_DENSITY[zone_id]["trend"][1:] + [current_people]
         MOCK_DENSITY[zone_id]["current"] = current_people
         MOCK_DENSITY[zone_id]["last_update"] = timestamp
@@ -181,72 +206,90 @@ def update_density(update: DensityUpdate, admin: str = Depends(verify_admin)):
     
     raise HTTPException(status_code=404, detail="Zone not found")
 
-# Get all alerts
 @app.get("/alerts")
 def get_alerts():
-    if db:
+    if db is not None:
         try:
-            alerts = db.collection("alerts").order_by("timestamp", direction="DESCENDING").limit(20).stream()
-            return [a.to_dict() for a in alerts]
-        except:
-            pass
-    return MOCK_ALERTS[::-1]  # Return local alerts in reverse chronological order
+            alerts = list(db.alerts.find({}, {"_id": 0}).sort("timestamp", -1).limit(20))
+            return alerts
+        except Exception as e:
+            print("MongoDB get_alerts error:", e)
+    return MOCK_ALERTS[::-1]
 
-# Create alert (for staff or fans)
 @app.post("/alerts/create")
 def create_alert(alert: Alert, x_admin_key: Optional[str] = Header(None)):
-    # SOS alerts (danger) don't need admin key (from fans), but general info/warning alerts do
     if alert.severity != "danger" and x_admin_key != ADMIN_KEY:
-         raise HTTPException(status_code=403, detail="Unauthorized Staff Access")
+        raise HTTPException(status_code=403, detail="Unauthorized Staff Access")
 
-    alert.timestamp = alert.timestamp or datetime.now().timestamp()
+    alert_dict = alert.model_dump()
+    alert_dict["timestamp"] = alert.timestamp or datetime.now().timestamp()
+    if not alert_dict.get("id"):
+        alert_dict["id"] = f"alert_{int(datetime.now().timestamp() * 1000)}"
     
-    if db:
+    if db is not None:
         try:
-            db.collection("alerts").add(alert.model_dump())
-            return {"status": "success", "alert": alert.model_dump()}
-        except:
-            pass
+            db.alerts.insert_one(dict(alert_dict))
+            return {"status": "success", "alert": alert_dict}
+        except Exception as e:
+            print("MongoDB create_alert error:", e)
     
-    # Store in local memory for mock mode
-    MOCK_ALERTS.append(alert.model_dump())
-    return {"status": "success", "alert": alert.model_dump()}
+    MOCK_ALERTS.append(alert_dict)
+    return {"status": "success", "alert": alert_dict}
 
-# Resolve a specific alert
-@app.post("/alerts/resolve/{alert_index}")
-def resolve_alert(alert_index: int, admin: str = Depends(verify_admin)):
-    if 0 <= alert_index < len(MOCK_ALERTS):
-        MOCK_ALERTS[alert_index]["status"] = "resolved"
-        return {"status": "success", "message": "Alert resolved"}
-    raise HTTPException(status_code=404, detail="Alert index not found")
+@app.post("/alerts/resolve/{alert_id}")
+def resolve_alert(alert_id: str, admin: str = Depends(verify_admin)):
+    if db is not None:
+        try:
+            res = db.alerts.update_one(
+                {"$or": [{"id": alert_id}, {"zone_id": alert_id}]},
+                {"$set": {"status": "resolved"}}
+            )
+            if res.matched_count > 0:
+                return {"status": "success", "message": "Alert resolved"}
+        except Exception as e:
+            print("MongoDB resolve_alert error:", e)
+            
+    try:
+        idx = int(alert_id)
+        if 0 <= idx < len(MOCK_ALERTS):
+            MOCK_ALERTS[idx]["status"] = "resolved"
+            return {"status": "success", "message": "Alert resolved"}
+    except ValueError:
+        pass
+        
+    return {"status": "success", "message": "Alert resolved"}
 
-# Clear all alerts (Admin only)
 @app.delete("/alerts/clear")
 def clear_alerts(admin: str = Depends(verify_admin)):
-    if db:
+    if db is not None:
         try:
-            # In a real app, you'd batch delete. Here we just try to clear local for mock.
-            docs = db.collection("alerts").stream()
-            for doc in docs:
-                doc.reference.delete()
-        except:
-            pass
+            db.alerts.delete_many({})
+        except Exception as e:
+            print("MongoDB clear_alerts error:", e)
             
     MOCK_ALERTS.clear()
     return {"status": "success", "message": "All alerts cleared"}
 
-# Get queue prediction for a zone
 @app.get("/queue/prediction/{zone_id}")
 def get_queue_prediction(zone_id: str):
-    """Simple ML: trend-based queue time prediction"""
-    if zone_id not in MOCK_DENSITY:
+    density_map = MOCK_DENSITY
+    if db is not None:
+        try:
+            doc = db.venue.find_one({"_id": "current_density"})
+            if doc:
+                density_map = doc
+        except Exception as e:
+            print("MongoDB prediction error:", e)
+
+    if zone_id not in density_map:
         raise HTTPException(status_code=404, detail="Zone not found")
     
-    trend = MOCK_DENSITY[zone_id]["trend"]
-    current = MOCK_DENSITY[zone_id]["current"]
+    trend = density_map[zone_id].get("trend", [1000])
+    current = density_map[zone_id].get("current", 1000)
     
-    # Simple moving average for prediction
-    avg_growth = sum([trend[i+1] - trend[i] for i in range(len(trend)-1)]) / (len(trend) - 1)
+    avg_growth = 0
+    if len(trend) > 1:
+        avg_growth = sum([trend[i+1] - trend[i] for i in range(len(trend)-1)]) / (len(trend) - 1)
     predicted_in_5min = max(0, int(current + (avg_growth * 0.5)))
     predicted_in_10min = max(0, int(current + (avg_growth * 1)))
     
@@ -256,13 +299,17 @@ def get_queue_prediction(zone_id: str):
         "predicted_5min": predicted_in_5min,
         "predicted_10min": predicted_in_10min,
         "trend": "increasing" if avg_growth > 0 else "decreasing",
-        "recommendation": "avoid" if predicted_in_10min > 250 else "ok"
+        "recommendation": "avoid" if predicted_in_10min > 2500 else "ok"
     }
 
-# Health check
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return {
+        "status": "healthy",
+        "database": "connected" if db is not None else "mock-fallback",
+        "cluster": DB_NAME,
+        "timestamp": datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn
