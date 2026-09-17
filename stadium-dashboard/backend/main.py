@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ADMIN_KEY = os.getenv("ADMIN_KEY", "admin")
-MONGODB_URI = os.getenv("MONGODB_URI", os.getenv("MONGO_URL", ""))
+# MongoDB Atlas URI — reads from env var, falls back to real cluster
+_ATLAS_URI = "mongodb+srv://aryanchandra3456_db_user:usB9HryhQd2PhI8U@stadiumpulse.i5eaqkc.mongodb.net/StadiumPulse?retryWrites=true&w=majority&appName=StadiumPulse"
+MONGODB_URI = os.getenv("MONGODB_URI", os.getenv("MONGO_URL", _ATLAS_URI))
 DB_NAME = "StadiumPulse"
 
 async def verify_admin(x_admin_key: Optional[str] = Header(None)):
@@ -69,8 +71,8 @@ MOCK_DENSITY = {
 MOCK_ALERTS = []
 
 def init_db():
-    if not MONGODB_URI or "<db_username>" in MONGODB_URI or "<password>" in MONGODB_URI:
-        print("⚠️ MongoDB URI missing or contains placeholder. Operating in resilient mock mode.")
+    if not MONGODB_URI:
+        print("⚠️ MongoDB URI not set. Operating in mock mode.")
         return None
     try:
         from pymongo import MongoClient

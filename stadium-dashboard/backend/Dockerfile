@@ -1,19 +1,24 @@
-# Use Python 3.11 slim image
+# Stadium Pulse - Python FastAPI Backend
+# Deployable to Railway / Render / Cloud Run via Docker
+
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Install system dependencies for pymongo / dnspython
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy source
 COPY main.py .
-COPY firebase-key.json .
 
-# Expose port 8000
+# Expose FastAPI port
 EXPOSE 8000
 
-# Run the application
+# Start with uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

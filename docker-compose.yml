@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./stadium-dashboard/backend
+      dockerfile: Dockerfile
+    container_name: stadiumpulse-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=mongodb+srv://aryanchandra3456_db_user:usB9HryhQd2PhI8U@stadiumpulse.i5eaqkc.mongodb.net/StadiumPulse?retryWrites=true&w=majority&appName=StadiumPulse
+      - DB_NAME=StadiumPulse
+      - ADMIN_KEY=admin
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./stadium-dashboard/frontend
+      dockerfile: Dockerfile
+    container_name: stadiumpulse-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

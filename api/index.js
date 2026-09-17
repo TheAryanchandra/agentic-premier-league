@@ -2,9 +2,10 @@
 const ADMIN_KEY = process.env.ADMIN_KEY || 'admin';
 const DB_NAME = 'StadiumPulse';
 
-// Raw URI from env or fallback with warning
-const rawUri = process.env.MONGODB_URI || process.env.MONGO_URL || '';
-const hasPlaceholder = rawUri.includes('<db_username>') || rawUri.includes('<password>');
+// MongoDB URI — reads from Vercel env var, falls back to cluster URI
+const ATLAS_URI = 'mongodb+srv://aryanchandra3456_db_user:usB9HryhQd2PhI8U@stadiumpulse.i5eaqkc.mongodb.net/StadiumPulse?retryWrites=true&w=majority&appName=StadiumPulse';
+const rawUri = process.env.MONGODB_URI || process.env.MONGO_URL || ATLAS_URI;
+const hasPlaceholder = rawUri.includes('<db_username>') || rawUri.includes('<db_password>');
 
 let cachedClient = null;
 let cachedDb = null;
@@ -14,6 +15,10 @@ let MongoClient = null;
 async function loadMongoClient() {
     if (MongoClient) return MongoClient;
     try {
+        try {
+            const dns = await import('dns');
+            dns.setServers(['8.8.8.8', '1.1.1.1']);
+        } catch (e) {}
         const mod = await import('mongodb');
         MongoClient = mod.MongoClient;
         return MongoClient;
