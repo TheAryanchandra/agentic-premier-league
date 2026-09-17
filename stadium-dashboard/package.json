@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Stadium Experience & Crowd Intelligence Dashboard",
   "type": "module",
+  "engines": { "node": ">=20" },
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js",
