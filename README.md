@@ -12,7 +12,7 @@
 
 🔗 **Live Production Deployments:**
 - 🌐 **Vercel Live Web App**: [https://agentic-premier-league-eight.vercel.app](https://agentic-premier-league-eight.vercel.app)
-- ☁️ **Google Cloud Run Dashboard**: [Stadium Pulse Live](https://storage.googleapis.com/aryan-487709-stadium-dashboard/index.html)
+- ☁️ **Google Cloud Run Dashboard**: [Stadium Pulse Live](https://agentic-premier-league-eight.vercel.app)
 
 ---
 
